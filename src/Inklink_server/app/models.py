@@ -17,6 +17,36 @@ class User(Base):
         CheckConstraint(role.in_(['user', 'admin']), name='role_check'),
     )
 
+class Book(Base):
+    __tablename__ = 'book'
+
+    isbn = Column(String(13), primary_key=True)
+    title = Column(String(255), nullable=False)
+    edition = Column(Integer, nullable=False)
+
+    authors = relationship("BookAuthors", back_populates="book")
+    categories = relationship("BookCategories", back_populates="book")
+
+class BookAuthors(Base):
+    __tablename__ = 'book_authors'
+
+    isbn = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
+    author = Column(String(50), primary_key=True)
+
+    book = relationship("Book", back_populates="authors")
+
+class BookCategories(Base):
+    __tablename__ = 'book_categories'
+
+    isbn = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
+    category = Column(String(10), primary_key=True)
+
+    book = relationship("Book", back_populates="categories")
+    
+    __table_args__ = (
+        CheckConstraint(category.in_(['textbook', 'others']), name='category_check'), 
+    )
+
 class Request(Base):
     __tablename__ = 'request'
 
@@ -48,18 +78,20 @@ class ExchangeRequest(Base):
     __tablename__ = 'exchange_request'
 
     request_id = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
-    wishlist_description = Column(Text, nullable=False)
+    isbn = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
+    no_of_copies = Column(Integer, nullable=False)
+    book_condition = Column(String(10), nullable=False)
 
     request = relationship("Request", back_populates="exchange_requests")
 
 class ExchangeResponse(Base):
     __tablename__ = 'exchange_response'
 
-    response_id = Column(Integer, primary_key=True, unique=True)
+    response_id = Column(Integer, primary_key=True)
     status = Column(String(15), nullable=False)
     response_time = Column(DateTime, nullable=False)
     responder_id = Column(Integer, ForeignKey('user.user_id'))
-    request_id = Column(Integer, ForeignKey('exchange_request.request_id'), primary_key=True)
+    request_id = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
     
     __table_args__ = (
         CheckConstraint(status.in_(['Accepted', 'Deleted', 'Rejected', 'Available']), name='status_check'),
@@ -75,7 +107,7 @@ class ProposeToExchange(Base):
     request_id = Column(Integer, primary_key=True)
 
     __table_args__ = (
-        ForeignKeyConstraint([response_id, request_id], [ExchangeResponse.response_id, ExchangeResponse.request_id],{}),
+        ForeignKeyConstraint([response_id, request_id], [ExchangeResponse.response_id, ExchangeResponse.request_id]),
     )
 
 class SellExchange(Base):
@@ -88,36 +120,6 @@ class SellExchange(Base):
 
     request = relationship("Request")
     book = relationship("Book")
-
-class Book(Base):
-    __tablename__ = 'book'
-
-    isbn = Column(String(13), primary_key=True)
-    title = Column(String(255), nullable=False)
-    edition = Column(Integer, nullable=False)
-
-    authors = relationship("BookAuthors", back_populates="book")
-    categories = relationship("BookCategories", back_populates="book")
-
-class BookAuthors(Base):
-    __tablename__ = 'book_authors'
-
-    isbn = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
-    author = Column(String(50), primary_key=True)
-
-    book = relationship("Book", back_populates="authors")
-
-class BookCategories(Base):
-    __tablename__ = 'book_categories'
-
-    isbn = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
-    category = Column(String(10), primary_key=True)
-
-    book = relationship("Book", back_populates="categories")
-    
-    __table_args__ = (
-        CheckConstraint(category.in_(['textbook', 'others']), name='category_check'), 
-    )
 
 class Owns(Base):
     __tablename__ = 'owns'
