@@ -2,9 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 import models
 from pydantic import BaseModel
 
-from database import SessionLocal
-
-db = SessionLocal()
+from database import db_dependency
 
 router = APIRouter(
     prefix="/users",
@@ -18,7 +16,7 @@ class UserBase(BaseModel):
     phone_number: str
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_new_user(user: UserBase):
+async def create_new_user(user: UserBase, db: db_dependency):
     new_user = models.User(
         username = user.username,
         password = user.password,

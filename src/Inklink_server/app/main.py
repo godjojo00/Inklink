@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import models
-from pydantic import BaseModel
 
-from database import engine, SessionLocal
-import users
+from database import engine
+import users, books
 
 app = FastAPI()
 app.include_router(users.router)
+app.include_router(books.router)
 origins = [
     'http://localhost:3000',
     "http://localhost"
@@ -21,8 +21,6 @@ app.add_middleware(
 )
 
 models.Base.metadata.create_all(bind=engine)
-
-db = SessionLocal()
 
 @app.get("/")
 async def root():
