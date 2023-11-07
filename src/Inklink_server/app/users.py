@@ -51,7 +51,7 @@ async def login(account: LoginBase, db: db_dependency):
 
 
 @router.get("/users/{user_id}", status_code=status.HTTP_200_OK)
-async def create_new_user(user_id: int, db: db_dependency):
+async def get_user(user_id: int, db: db_dependency):
     _user = models.User(user_id = user_id)
     db_user_id = db.query(models.User).filter(_user.user_id == models.User.user_id).first()
     if db_user_id is None:
