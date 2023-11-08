@@ -3,11 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import models
 
 from database import engine
-import users, books
+import books, book_requests, users
 
 app = FastAPI()
-app.include_router(users.router)
 app.include_router(books.router)
+app.include_router(book_requests.router)
+app.include_router(users.router)
 origins = [
     'http://localhost:3000',
     "http://localhost"

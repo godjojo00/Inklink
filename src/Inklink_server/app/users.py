@@ -62,8 +62,8 @@ async def get_user(user_id: int, db: db_dependency):
     
 class OwnBase(BaseModel):
     user_id: int
-    isbn: List[str]
-    no_of_copies: List[int]
+    isbn_list: List[str]
+    no_of_copies_list: List[int]
 
 @router.post("/own", status_code=status.HTTP_201_CREATED)
 async def user_own(own: OwnBase, db: db_dependency):
@@ -72,16 +72,16 @@ async def user_own(own: OwnBase, db: db_dependency):
     if db_user_id is None:
         raise HTTPException(status_code=404, detail="User_id doesn't exist")
     else:
-        for i in range(len(own.isbn)):
-            _book = models.Book(isbn = own.isbn[i])
+        for i in range(len(own.isbn_list)):
+            _book = models.Book(isbn = own.isbn_list[i])
             db_book = db.query(models.Book).filter(_book.isbn == models.Book.isbn).first()
             if db_book is None:
                 raise HTTPException(status_code=404, detail="Book with ISBN doesn't exist in the database")
             else:
                 db_own = models.Owns(
                     owner_id = own.user_id,
-                    isbn = own.isbn[i],
-                    no_of_copies = own.no_of_copies[i]
+                    isbn = own.isbn_list[i],
+                    no_of_copies = own.no_of_copies_list[i]
                 )
                 db.add(db_own)
                 db.commit()
