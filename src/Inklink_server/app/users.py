@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 import models
 from pydantic import BaseModel
+from typing import List
 
 from database import db_dependency
 
@@ -50,7 +51,7 @@ async def login(account: LoginBase, db: db_dependency):
             return {"login": "failed"}
 
 
-@router.get("/users/{user_id}", status_code=status.HTTP_200_OK)
+@router.get("/{user_id}", status_code=status.HTTP_200_OK)
 async def get_user(user_id: int, db: db_dependency):
     _user = models.User(user_id = user_id)
     db_user_id = db.query(models.User).filter(_user.user_id == models.User.user_id).first()
@@ -58,3 +59,38 @@ async def get_user(user_id: int, db: db_dependency):
         raise HTTPException(status_code=404, detail="User_id doesn't exist")
     else:
         return db_user_id.__dict__
+    
+class OwnBase(BaseModel):
+    user_id: int
+    isbn: List[str]
+    no_of_copies: List[int]
+
+@router.post("/own", status_code=status.HTTP_201_CREATED)
+async def user_own(own: OwnBase, db: db_dependency):
+    _user = models.User(user_id = own.user_id)
+    db_user_id = db.query(models.User).filter(_user.user_id == models.User.user_id).first()
+    if db_user_id is None:
+        raise HTTPException(status_code=404, detail="User_id doesn't exist")
+    else:
+        for i in range(len(own.isbn)):
+            _book = models.Book(isbn = own.isbn[i])
+            db_book = db.query(models.Book).filter(_book.isbn == models.Book.isbn).first()
+            if db_book is None:
+                raise HTTPException(status_code=404, detail="Book with ISBN doesn't exist in the database")
+            else:
+                db_own = models.Owns(
+                    owner_id = own.user_id,
+                    isbn = own.isbn[i],
+                    no_of_copies = own.no_of_copies[i]
+                )
+                db.add(db_own)
+                db.commit()
+
+@router.get("/own/{user_id}", status_code=status.HTTP_200_OK)
+async def get_user_own(user_id: int, db: db_dependency):
+    _user = models.User(user_id = user_id)
+    db_user_id = db.query(models.User).filter(_user.user_id == models.User.user_id).first()
+    if db_user_id is None:
+        raise HTTPException(status_code=404, detail="User_id doesn't exist")
+    else:
+        return db.query(models.Owns).filter(user_id == models.Owns.owner_id).all()
