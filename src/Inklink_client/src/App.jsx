@@ -4,6 +4,8 @@ import BookExchange from './pages/bookexchange'; // 請確保路徑是正確的
 import Home from './pages/Home'; // 請替換路徑為您的 Home 組件的正確路徑
 import IdVerify from './pages/IdVerify';
 import QuestionForm from './pages/questionform';
+import SignUp_Page from './pages/signUp_page';
+import Login from './pages/login';
 
 function App() {
   return (
@@ -11,6 +13,8 @@ function App() {
       <div>
         <Routes>
           <Route>
+            <Route element={<SignUp_Page/>} path='/SignUp' />
+            <Route element={<Login/>} path='/login' />
             <Route element={<IdVerify/>} path='/Id' />
             <Route element={<Home/>} path="/" exact />
             <Route element={<BookExchange/>} path="/book-exchange" />
