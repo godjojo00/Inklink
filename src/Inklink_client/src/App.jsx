@@ -6,6 +6,7 @@ import IdVerify from './pages/IdVerify';
 import QuestionForm from './pages/questionform';
 import SignUp_Page from './pages/signUp_page';
 import Login from './pages/login';
+import Owns from './pages/owns'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Routes>
           <Route>
             <Route element={<SignUp_Page/>} path='/SignUp' />
+            <Route element={<Owns/>} path='/owns' />
             <Route element={<Login/>} path='/login' />
             <Route element={<IdVerify/>} path='/Id' />
             <Route element={<Home/>} path="/" exact />
