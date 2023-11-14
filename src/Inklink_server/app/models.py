@@ -79,9 +79,7 @@ class ExchangeRequest(Base):
     __tablename__ = 'exchange_request'
 
     request_id: int = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
-    isbn: str = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
-    no_of_copies: int = Column(Integer, nullable=False)
-    book_condition: str = Column(String(10), nullable=False)
+    wishlist_description: str = Column(String())
 
     request = relationship("Request", back_populates="exchange_requests")
 
