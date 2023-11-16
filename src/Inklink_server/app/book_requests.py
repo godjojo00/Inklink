@@ -59,6 +59,15 @@ async def create_sell_request(sell_req: SellRequestBase, db: db_dependency):
             reduce_copies_owned(sell_req.request_info.poster_id, sell_req.request_info.isbn_list[i], sell_req.request_info.no_of_copies_list[i], db)
     return new_req.request_id
 
+# To be modified
+@router.get("/sell/{request_id}", status_code=status.HTTP_200_OK)
+async def get_sell_request(request_id: int, db: db_dependency):
+    q = db.query(models.SellingRequest).filter(models.SellingRequest.request_id == request_id)
+    if q.count():
+        return db.query(models.SellingRequest, models.Request).filter(models.Request.request_id == request_id, models.SellingRequest.request_id == request_id).all()
+    else:
+        raise HTTPException(status_code=404, detail="Request id not found in selling requests")
+
 @router.post("/exchange", status_code=status.HTTP_201_CREATED)
 async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_dependency):
     have_enough_books = check_enough_books(exchange_req.request_info.poster_id, exchange_req.request_info.isbn_list, exchange_req.request_info.no_of_copies_list, db)
@@ -92,6 +101,15 @@ async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_depe
             db.commit()
             reduce_copies_owned(exchange_req.request_info.poster_id, exchange_req.request_info.isbn_list[i], exchange_req.request_info.no_of_copies_list[i], db)
     return new_req.request_id
+
+# To be modified
+@router.get("/exchange/{request_id}", status_code=status.HTTP_200_OK)
+async def get_exchange_request(request_id: int, db: db_dependency):
+    q = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id)
+    if q.count():
+        return db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).all()
+    else:
+        raise HTTPException(status_code=404, detail="Request id not found in exchange requests")
 
 def check_enough_books(user_id, isbn_list, no_of_copies_list, db):
     for i in range(len(isbn_list)):
