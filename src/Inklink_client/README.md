@@ -4,10 +4,10 @@
 2. Go into the repo
 3. Install dependencies
 ```sh
-yarn install
+npm install
 ```
 4. Start the dev server
 ```sh
-yarn dev
+npm run dev
 ```
 5. Open http://localhost:5173
