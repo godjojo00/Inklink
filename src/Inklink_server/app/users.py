@@ -73,8 +73,8 @@ async def user_own(own: OwnBase, db: db_dependency):
         raise HTTPException(status_code=404, detail="User_id doesn't exist")
     else:
         for i in range(len(own.isbn_list)):
-            _book = models.Book(isbn = own.isbn_list[i])
-            db_book = db.query(models.Book).filter(_book.isbn == models.Book.isbn).first()
+            _book = models.BookIsbns(isbn = own.isbn_list[i])
+            db_book = db.query(models.BookIsbns).filter(_book.isbn == models.BookIsbns.isbn).first()
             if db_book is None:
                 raise HTTPException(status_code=404, detail="Book with ISBN doesn't exist in the database")
             else:

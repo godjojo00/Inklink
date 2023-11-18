@@ -19,34 +19,32 @@ class User(Base):
     )
 
 class Book(Base):
-    __tablename__ = 'book'
+    __tablename__ = 'book_editions'
 
-    isbn: str = Column(String(13), primary_key=True)
-    title: str = Column(String(255), nullable=False)
-    edition: int = Column(Integer, nullable=False)
+    key: str = Column(Text, primary_key=True)
+    title: str = Column(Text, nullable=False)
+    edition: str = Column(Text)
+    subtitle: str = Column(Text)
 
     authors = relationship("BookAuthors", back_populates="book")
-    categories = relationship("BookCategories", back_populates="book")
+    isbns = relationship("BookIsbns", back_populates="book")
 
 class BookAuthors(Base):
     __tablename__ = 'book_authors'
 
-    isbn: str = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
-    author: str = Column(String(50), primary_key=True)
+    edition_key: str = Column(Text, ForeignKey('book_editions.key'), primary_key=True)
+    author_name: str = Column(Text, primary_key=True)
 
     book = relationship("Book", back_populates="authors")
 
-class BookCategories(Base):
-    __tablename__ = 'book_categories'
+class BookIsbns(Base):
+    __tablename__ = 'book_isbns'
 
-    isbn: str = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
-    category: str = Column(String(10), primary_key=True)
+    edition_key: str = Column(Text, ForeignKey('book_editions.key'), primary_key=True)
+    isbn: str = Column(String(13), primary_key=True, unique=True)
 
-    book = relationship("Book", back_populates="categories")
-    
-    __table_args__ = (
-        CheckConstraint(category.in_(['textbook', 'others']), name='category_check'), 
-    )
+    book = relationship("Book", back_populates="isbns")
+
 
 class Request(Base):
     __tablename__ = 'request'
@@ -100,7 +98,7 @@ class ProposeToExchange(Base):
     __tablename__ = 'propose_to_exchange'
 
     response_id: int = Column(Integer, primary_key=True)
-    isbn: str = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
+    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
     book_condition: str = Column(String(10), nullable=False)
     request_id: int = Column(Integer, primary_key=True)
@@ -113,18 +111,18 @@ class SellExchange(Base):
     __tablename__ = 'sell_exchange'
 
     request_id: int = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
-    isbn: str = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
+    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
     book_condition: str = Column(String(10), nullable=False)
 
     request = relationship("Request")
-    book = relationship("Book")
+    book = relationship("BookIsbns")
 
 class Owns(Base):
     __tablename__ = 'owns'
 
     owner_id: int = Column(Integer, ForeignKey('user.user_id'), primary_key=True)
-    isbn: str = Column(String(13), ForeignKey('book.isbn'), primary_key=True)
+    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
 
 class Rating(Base):
