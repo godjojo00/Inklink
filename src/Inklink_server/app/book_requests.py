@@ -17,6 +17,23 @@ class RequestBase(BaseModel):
     no_of_copies_list: List[int]
     book_condition_list: List[str]
 
+class Request(BaseModel):
+    request_id: int
+    status: str
+    posting_time: datetime
+    poster_id: int
+    is_type: str
+    class Config:
+        from_attributes= True
+
+class SellingRequest(BaseModel):
+    request_id: int
+    price: int
+    buyer_id: int
+    buying_time: datetime
+    class Config:
+        from_attributes= True
+
 class SellRequestBase(BaseModel):
     request_info: RequestBase
     price: int
@@ -59,12 +76,15 @@ async def create_sell_request(sell_req: SellRequestBase, db: db_dependency):
             reduce_copies_owned(sell_req.request_info.poster_id, sell_req.request_info.isbn_list[i], sell_req.request_info.no_of_copies_list[i], db)
     return new_req.request_id
 
-# To be modified
 @router.get("/sell/{request_id}", status_code=status.HTTP_200_OK)
 async def get_sell_request(request_id: int, db: db_dependency):
-    q = db.query(models.SellingRequest).filter(models.SellingRequest.request_id == request_id)
-    if q.count():
-        return db.query(models.SellingRequest, models.Request).filter(models.Request.request_id == request_id, models.SellingRequest.request_id == request_id).all()
+    result = db.query(models.SellingRequest, models.Request).join(models.Request, models.SellingRequest.request_id == models.Request.request_id).filter(models.SellingRequest.request_id == request_id).first()
+    if result:
+        selling_request, request = result
+        merged_result = {**selling_request.__dict__, **request.__dict__}
+        # Optionally, remove SQLAlchemy internal attribute '_sa_instance_state'
+        merged_result.pop('_sa_instance_state', None)
+        return merged_result
     else:
         raise HTTPException(status_code=404, detail="Request id not found in selling requests")
 
@@ -102,12 +122,16 @@ async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_depe
             reduce_copies_owned(exchange_req.request_info.poster_id, exchange_req.request_info.isbn_list[i], exchange_req.request_info.no_of_copies_list[i], db)
     return new_req.request_id
 
-# To be modified
+
 @router.get("/exchange/{request_id}", status_code=status.HTTP_200_OK)
 async def get_exchange_request(request_id: int, db: db_dependency):
-    q = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id)
-    if q.count():
-        return db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).all()
+    result = db.query(models.ExchangeRequest, models.Request).join(models.Request, models.ExchangeRequest.request_id == models.Request.request_id).filter(models.ExchangeRequest.request_id == request_id).first()
+    if result:
+        exchange_request, request = result
+        merged_result = {**exchange_request.__dict__, **request.__dict__}
+        # Optionally, remove SQLAlchemy internal attribute '_sa_instance_state'
+        merged_result.pop('_sa_instance_state', None)
+        return merged_result
     else:
         raise HTTPException(status_code=404, detail="Request id not found in exchange requests")
 
@@ -129,3 +153,18 @@ def reduce_copies_owned(user_id, isbn, reduced_no_of_copies, db):
             query.delete()
         db.commit()
         return True
+    
+def add_copies_owned(user_id, isbn, add_no_of_copies, db):
+    query = db.query(models.Owns).filter(user_id == models.Owns.owner_id, isbn == models.Owns.isbn)
+    db_own = query.first()
+    if db_own is None:
+        db_new_own = models.Owns(
+            owner_id = user_id,
+            isbn = isbn,
+            no_of_copies = add_no_of_copies
+        )
+        db.add(db_new_own)
+        db.commit()
+    else:
+        db_own.no_of_copies += add_no_of_copies
+        db.commit()
