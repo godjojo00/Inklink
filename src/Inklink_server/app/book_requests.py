@@ -17,23 +17,6 @@ class RequestBase(BaseModel):
     no_of_copies_list: List[int]
     book_condition_list: List[str]
 
-class Request(BaseModel):
-    request_id: int
-    status: str
-    posting_time: datetime
-    poster_id: int
-    is_type: str
-    class Config:
-        from_attributes= True
-
-class SellingRequest(BaseModel):
-    request_id: int
-    price: int
-    buyer_id: int
-    buying_time: datetime
-    class Config:
-        from_attributes= True
-
 class SellRequestBase(BaseModel):
     request_info: RequestBase
     price: int
@@ -87,6 +70,24 @@ async def get_sell_request(request_id: int, db: db_dependency):
         return merged_result
     else:
         raise HTTPException(status_code=404, detail="Request id not found in selling requests")
+
+@router.patch("/sell/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def buy_sell_request(request_id: int, buyer_id: int, db:db_dependency):
+    db_sell_req = db.query(models.SellingRequest).filter(models.SellingRequest.request_id == request_id).first()
+    if db_sell_req is None:
+        raise HTTPException(status_code=404, detail="Selling request not found")
+    # Assuming the buyer can't be changed once set, or add additional checks as necessary
+    if db_sell_req.buyer_id is not None:
+        raise HTTPException(status_code=400, detail="Selling request already has a buyer")
+    db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
+    if db_req.poster_id == buyer_id:
+        raise HTTPException(status_code=400, detail="Cannot buy sell requests posted by yourself")
+    db_sell_req.buyer_id = buyer_id
+    db_sell_req.buying_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db_req.status = "Accepted"
+    db.commit()
+    add_copies_owned(buyer_id, request_id, db)
+    return
 
 @router.post("/exchange", status_code=status.HTTP_201_CREATED)
 async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_dependency):
@@ -143,28 +144,30 @@ def check_enough_books(user_id, isbn_list, no_of_copies_list, db):
     return True
 
 def reduce_copies_owned(user_id, isbn, reduced_no_of_copies, db):
-    query = db.query(models.Owns).filter(user_id == models.Owns.owner_id, isbn == models.Owns.isbn)
-    db_own = query.first()
+    db_own = db.query(models.Owns).filter(user_id == models.Owns.owner_id, isbn == models.Owns.isbn).first()
     if db_own is None:
         return False
     else:
         db_own.no_of_copies -= reduced_no_of_copies
         if db_own.no_of_copies == 0:
-            query.delete()
+            db_own.delete()
         db.commit()
         return True
     
-def add_copies_owned(user_id, isbn, add_no_of_copies, db):
-    query = db.query(models.Owns).filter(user_id == models.Owns.owner_id, isbn == models.Owns.isbn)
-    db_own = query.first()
-    if db_own is None:
-        db_new_own = models.Owns(
-            owner_id = user_id,
-            isbn = isbn,
-            no_of_copies = add_no_of_copies
-        )
-        db.add(db_new_own)
-        db.commit()
-    else:
-        db_own.no_of_copies += add_no_of_copies
-        db.commit()
+def add_copies_owned(user_id, request_id, db):
+    db_req = db.query(models.SellExchange).filter(models.SellExchange.request_id == request_id).all()
+    if not db_req:
+        raise HTTPException(status_code=404, detail=f"No records found for request_id {request_id}")
+    for record in db_req:
+        db_own = db.query(models.Owns).filter(models.Owns.owner_id == user_id, models.Owns.isbn == record.isbn).first()
+        if db_own is None:
+            db_new_own = models.Owns(
+                owner_id = user_id,
+                isbn = record.isbn,
+                no_of_copies = record.no_of_copies
+            )
+            db.add(db_new_own)
+            db.commit()
+        else:
+            db_own.no_of_copies += record.no_of_copies
+            db.commit()
