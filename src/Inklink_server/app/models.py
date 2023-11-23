@@ -21,10 +21,10 @@ class User(Base):
 class Book(Base):
     __tablename__ = 'book_editions'
 
-    key: str = Column(Text, primary_key=True)
     title: str = Column(Text, nullable=False)
     edition: str = Column(Text)
     subtitle: str = Column(Text)
+    edition_id: int = Column(Integer, primary_key=True, autoincrement=True)
 
     authors = relationship("BookAuthors", back_populates="book")
     isbns = relationship("BookIsbns", back_populates="book")
@@ -32,7 +32,7 @@ class Book(Base):
 class BookAuthors(Base):
     __tablename__ = 'book_authors'
 
-    edition_key: str = Column(Text, ForeignKey('book_editions.key'), primary_key=True)
+    edition_id: int = Column(Integer, ForeignKey('book_editions.edition_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     author_name: str = Column(Text, primary_key=True)
 
     book = relationship("Book", back_populates="authors")
@@ -40,8 +40,8 @@ class BookAuthors(Base):
 class BookIsbns(Base):
     __tablename__ = 'book_isbns'
 
-    edition_key: str = Column(Text, ForeignKey('book_editions.key'), primary_key=True)
-    isbn: str = Column(String(13), primary_key=True, unique=True)
+    edition_id: int = Column(Integer, ForeignKey('book_editions.edition_id', ondelete='CASCADE', onupdate='CASCADE'))
+    isbn: str = Column(String(13), primary_key=True)
 
     book = relationship("Book", back_populates="isbns")
 
@@ -52,7 +52,7 @@ class Request(Base):
     request_id: int = Column(Integer, primary_key=True, autoincrement=True)
     status: str = Column(String(15), nullable=False)
     posting_time: datetime = Column(DateTime, nullable=False)
-    poster_id: int = Column(Integer, ForeignKey('user.user_id'), nullable=False)
+    poster_id: int = Column(Integer, ForeignKey('user.user_id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False)
     is_type: str = Column(String(10), nullable=False)
 
     selling_requests = relationship("SellingRequest", back_populates="request")
@@ -66,9 +66,9 @@ class Request(Base):
 class SellingRequest(Base):
     __tablename__ = 'selling_request'
 
-    request_id: int = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
+    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     price: int = Column(Integer, nullable=False)
-    buyer_id: int = Column(Integer, ForeignKey('user.user_id'))
+    buyer_id: int = Column(Integer, ForeignKey('user.user_id', ondelete='CASCADE', onupdate='CASCADE'))
     buying_time: datetime = Column(DateTime)
 
     request = relationship("Request", back_populates="selling_requests")
@@ -76,7 +76,7 @@ class SellingRequest(Base):
 class ExchangeRequest(Base):
     __tablename__ = 'exchange_request'
 
-    request_id: int = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
+    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     wishlist_description: str = Column(String())
 
     request = relationship("Request", back_populates="exchange_requests")
@@ -87,8 +87,8 @@ class ExchangeResponse(Base):
     response_id: int = Column(Integer, primary_key=True)
     status: str = Column(String(15), nullable=False)
     response_time: datetime = Column(DateTime, nullable=False)
-    responder_id: int = Column(Integer, ForeignKey('user.user_id'))
-    request_id: int = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
+    responder_id: int = Column(Integer, ForeignKey('user.user_id', ondelete='CASCADE', onupdate='CASCADE'))
+    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     
     __table_args__ = (
         CheckConstraint(status.in_(['Accepted', 'Deleted', 'Rejected', 'Available']), name='status_check'),
@@ -98,20 +98,21 @@ class ProposeToExchange(Base):
     __tablename__ = 'propose_to_exchange'
 
     response_id: int = Column(Integer, primary_key=True)
-    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn'), primary_key=True)
+    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
     book_condition: str = Column(String(10), nullable=False)
     request_id: int = Column(Integer, primary_key=True)
 
     __table_args__ = (
-        ForeignKeyConstraint([response_id, request_id], [ExchangeResponse.response_id, ExchangeResponse.request_id]),
+        ForeignKeyConstraint([response_id, request_id], [ExchangeResponse.response_id, ExchangeResponse.request_id], 
+                             ondelete='CASCADE', onupdate='CASCADE'),
     )
 
 class SellExchange(Base):
     __tablename__ = 'sell_exchange'
 
-    request_id: int = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
-    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn'), primary_key=True)
+    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
+    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
     book_condition: str = Column(String(10), nullable=False)
 
@@ -121,16 +122,16 @@ class SellExchange(Base):
 class Owns(Base):
     __tablename__ = 'owns'
 
-    owner_id: int = Column(Integer, ForeignKey('user.user_id'), primary_key=True)
-    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn'), primary_key=True)
+    owner_id: int = Column(Integer, ForeignKey('user.user_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
+    isbn: str = Column(String(13), ForeignKey('book_isbns.isbn', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
 
 class Rating(Base):
     __tablename__ = 'rating'
 
-    rating_user_id: int = Column(Integer, ForeignKey('user.user_id'), primary_key=True)
-    rated_user_id: int = Column(Integer, ForeignKey('user.user_id'), primary_key=True)
-    request_id: int = Column(Integer, ForeignKey('request.request_id'), primary_key=True)
+    rating_user_id: int = Column(Integer, ForeignKey('user.user_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
+    rated_user_id: int = Column(Integer, ForeignKey('user.user_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
+    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     rating_time: datetime = Column(DateTime, nullable=False)
     score: int = Column(Integer, nullable=False)
 
