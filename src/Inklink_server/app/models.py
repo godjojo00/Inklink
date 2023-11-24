@@ -22,7 +22,7 @@ class Book(Base):
     __tablename__ = 'book_editions'
 
     title: str = Column(Text, nullable=False)
-    edition: str = Column(Text)
+    edition_name: str = Column(Text)
     subtitle: str = Column(Text)
     edition_id: int = Column(Integer, primary_key=True, autoincrement=True)
 
