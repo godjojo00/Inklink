@@ -47,7 +47,11 @@ async def create_book(book: BookBase, db: db_dependency):
                 edition_id = new_book.edition_id,
                 author_name = author_name
             )
-            db.add(db_book_author)
-            db.commit()
-        print(new_book.edition_id)
-        return new_book.isbns
+            db_book_author_exist = db.query(models.BookAuthors).filter(
+                db_book_author.edition_id == models.BookAuthors.edition_id,
+                db_book_author.author_name == models.BookAuthors.author_name
+            ).first()
+            if db_book_author_exist is None:
+                db.add(db_book_author)
+                db.commit()
+        return new_isbn.isbn
