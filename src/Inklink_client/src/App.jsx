@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import BookExchange from './pages/bookexchange';
 import Home from './pages/Home';
-import IdVerify from './pages/IdVerify';
-import QuestionForm from './pages/questionform';
 import SignUp_Page from './pages/signUp_page';
 import Login from './pages/login';
 import Owns from './pages/owns';
 import Header from './component/header';
+import RequestPage from './pages/requestpage';
 
 function App() {
   const [user, setUser] = useState(null); // 使用狀態來管理用戶
@@ -33,8 +31,6 @@ function App() {
             element={
               <Routes>
                 <Route element={<Home />} path="/" />
-                <Route element={<BookExchange />} path="/book-exchange" />
-                <Route element={<QuestionForm />} path="/questionform" />
                 <Route
                   element={<SignUp_Page onLogin={handleLogin} />}
                   path="/signUp"
@@ -43,8 +39,8 @@ function App() {
                   element={<Login onLogin={handleLogin} />}
                   path="/login"
                 />
-                <Route element={<IdVerify />} path="/Id" />
                 <Route element={<Owns />} path="/owns" />
+                <Route element={<RequestPage />} path="/request" />
               </Routes>
             }
           />
