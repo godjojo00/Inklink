@@ -97,16 +97,10 @@ class ExchangeResponse(Base):
 class ProposeToExchange(Base):
     __tablename__ = 'propose_to_exchange'
 
-    response_id: int = Column(Integer, primary_key=True)
+    response_id: int = Column(Integer, ForeignKey('ExchangeResponse.response_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     isbn: str = Column(String(13), ForeignKey('book_isbns.isbn', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
     book_condition: str = Column(String(10), nullable=False)
-    request_id: int = Column(Integer, primary_key=True)
-
-    __table_args__ = (
-        ForeignKeyConstraint([response_id, request_id], [ExchangeResponse.response_id, ExchangeResponse.request_id], 
-                             ondelete='CASCADE', onupdate='CASCADE'),
-    )
 
 class SellExchange(Base):
     __tablename__ = 'sell_exchange'
