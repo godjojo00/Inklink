@@ -18,10 +18,6 @@ class ResponseBase(BaseModel):
     no_of_copies_list: List[int]
     book_condition_list: List[str]
 
-@router.get("/")
-async def response_root():
-    return {"message": "Hello Response"}
-
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_exchange_response(exchange_res: ResponseBase, db: db_dependency):
     query = db.query(models.Request).filter(models.Request.request_id == exchange_res.request_id).first()
@@ -55,3 +51,9 @@ async def create_exchange_response(exchange_res: ResponseBase, db: db_dependency
             db.commit()
             utils.reduce_copies_owned(exchange_res.responder_id, exchange_res.isbn_list[i], exchange_res.no_of_copies_list[i], db)
     return new_res.response_id
+
+
+@router.get("/{request_id}", status_code=status.HTTP_200_OK)
+async def get_exchange_response(request_id: int, db: db_dependency):
+    db_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == request_id, models.ExchangeResponse.status == 'Available').all()
+    return db_res
