@@ -97,7 +97,7 @@ class ExchangeResponse(Base):
 class ProposeToExchange(Base):
     __tablename__ = 'propose_to_exchange'
 
-    response_id: int = Column(Integer, ForeignKey('ExchangeResponse.response_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
+    response_id: int = Column(Integer, ForeignKey('exchange_response.response_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     isbn: str = Column(String(13), ForeignKey('book_isbns.isbn', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
     book_condition: str = Column(String(10), nullable=False)
