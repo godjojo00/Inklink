@@ -84,11 +84,11 @@ class ExchangeRequest(Base):
 class ExchangeResponse(Base):
     __tablename__ = 'exchange_response'
 
-    response_id: int = Column(Integer, primary_key=True)
+    response_id: int = Column(Integer, primary_key=True, autoincrement=True)
     status: str = Column(String(15), nullable=False)
     response_time: datetime = Column(DateTime, nullable=False)
     responder_id: int = Column(Integer, ForeignKey('user.user_id', ondelete='CASCADE', onupdate='CASCADE'))
-    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
+    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'))
     
     __table_args__ = (
         CheckConstraint(status.in_(['Accepted', 'Deleted', 'Rejected', 'Available']), name='status_check'),
