@@ -13,37 +13,45 @@ router = APIRouter(
 class BookBase(BaseModel):
     isbn: str
     title: str
-    edition: int
-    authors: List[str]
-    categories: List[str]
+    subtitle: str
+    edition_name: str
+    author_list: List[str]
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_book(book: BookBase, db: db_dependency):
-    new_book = models.Book(
-        isbn = book.isbn,
-        title = book.title,
-        edition = book.edition,
-    )
-    db_isbn_exist = db.query(models.Book).filter(new_book.isbn == models.Book.isbn).first()
+    new_isbn = models.BookIsbns(isbn = book.isbn)
+    db_isbn_exist = db.query(models.BookIsbns).filter(new_isbn.isbn == models.BookIsbns.isbn).first()
     if db_isbn_exist is not None:
         raise HTTPException(status_code=404, detail="ISBN already exists")
     else:
-        db.add(new_book)
+        new_book = models.Book(
+            title = book.title,
+            subtitle = book.subtitle,
+            edition_name = book.edition_name,
+        )
+        db_book_exist = db.query(models.Book).filter(
+            new_book.title == models.Book.title, 
+            new_book.subtitle == models.Book.subtitle, 
+            new_book.edition_name == models.Book.edition_name
+            ).first()
+        if db_book_exist is not None: # if book already exists
+            new_book.edition_id = db_book_exist.__dict__['edition_id']
+        else:
+            db.add(new_book)
+            db.commit()
+        new_isbn.edition_id=new_book.edition_id
+        db.add(new_isbn)
         db.commit()
-
-        for author in book.authors:
+        for author_name in book.author_list:
             db_book_author = models.BookAuthors(
-                isbn = book.isbn,
-                author = author
+                edition_id = new_book.edition_id,
+                author_name = author_name
             )
-            db.add(db_book_author)
-            db.commit()
-        
-        for category in book.categories:
-            db_book_category = models.BookCategories(
-                isbn = book.isbn,
-                category = category
-            )
-            db.add(db_book_category)
-            db.commit()
-        return new_book.isbn
+            db_book_author_exist = db.query(models.BookAuthors).filter(
+                db_book_author.edition_id == models.BookAuthors.edition_id,
+                db_book_author.author_name == models.BookAuthors.author_name
+            ).first()
+            if db_book_author_exist is None:
+                db.add(db_book_author)
+                db.commit()
+        return new_isbn.isbn
