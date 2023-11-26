@@ -84,11 +84,11 @@ class ExchangeRequest(Base):
 class ExchangeResponse(Base):
     __tablename__ = 'exchange_response'
 
-    response_id: int = Column(Integer, primary_key=True)
+    response_id: int = Column(Integer, primary_key=True, autoincrement=True)
     status: str = Column(String(15), nullable=False)
     response_time: datetime = Column(DateTime, nullable=False)
     responder_id: int = Column(Integer, ForeignKey('user.user_id', ondelete='CASCADE', onupdate='CASCADE'))
-    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
+    request_id: int = Column(Integer, ForeignKey('request.request_id', ondelete='CASCADE', onupdate='CASCADE'))
     
     __table_args__ = (
         CheckConstraint(status.in_(['Accepted', 'Deleted', 'Rejected', 'Available']), name='status_check'),
@@ -97,16 +97,10 @@ class ExchangeResponse(Base):
 class ProposeToExchange(Base):
     __tablename__ = 'propose_to_exchange'
 
-    response_id: int = Column(Integer, primary_key=True)
+    response_id: int = Column(Integer, ForeignKey('exchange_response.response_id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     isbn: str = Column(String(13), ForeignKey('book_isbns.isbn', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     no_of_copies: int = Column(Integer, nullable=False)
     book_condition: str = Column(String(10), nullable=False)
-    request_id: int = Column(Integer, primary_key=True)
-
-    __table_args__ = (
-        ForeignKeyConstraint([response_id, request_id], [ExchangeResponse.response_id, ExchangeResponse.request_id], 
-                             ondelete='CASCADE', onupdate='CASCADE'),
-    )
 
 class SellExchange(Base):
     __tablename__ = 'sell_exchange'
