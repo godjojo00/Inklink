@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Table } from 'antd';
 import { UserOutlined, BookOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { callApi } from '../utils/axios_client';
+import { useUser } from '../Usercontext';
+import { useNavigate } from 'react-router-dom';
 
-const Owns = ({ userId, token }) => {
+const Owns = ({ token }) => {
+  const navigate = useNavigate();
+  const { user } = useUser();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
-
+  console.log(user.userId)
   const columns = [
     {
       title: 'ISBN',
@@ -21,14 +25,21 @@ const Owns = ({ userId, token }) => {
     },
   ];
 
-  const fetchBooks = async () => {
+  // 修改函数名为 getBooks
+  const getBooks = async () => {
     try {
-      const response = await axios.get(
-        `http://127.0.0.1:8000/users/${userId}/owns`,
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+
+      // 使用 callApi 函数发起 GET 请求
+      const response = await callApi(
+        `http://localhost:8000/users/own/${user.user_id}`,
+        'get',
+        null,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          Authorization: `Bearer ${token}`,
         }
       );
 
@@ -41,31 +52,34 @@ const Owns = ({ userId, token }) => {
   };
 
   useEffect(() => {
-    fetchBooks();
-  }, []); // 在组件挂载时获取用户已有书籍
+    getBooks();
+  }, [user, token]);
 
   const onFinish = async (values) => {
     try {
       setLoading(true);
 
-      // 发送 POST 请求到后端
-      const response = await axios.post(
-        `http://127.0.0.1:8000/users/${userId}/owns`,
+      // 在添加书籍前先获取用户ID
+      await getBooks();
+
+      // 使用 callApi 函数发起 POST 请求
+      const response = await callApi(
+        'http://localhost:8000/users/own',
+        'post',
         {
+          user_id: user.user_id,
           isbn: values.isbn,
           quantity: values.quantity,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          Authorization: `Bearer ${token}`,
         }
       );
 
       if (response.status === 201) {
         message.success('Book added successfully!');
         form.resetFields();
-        fetchBooks(); // 在添加书籍后刷新书籍列表
+        getBooks();
       }
     } catch (error) {
       console.error(error);
@@ -116,13 +130,13 @@ const Owns = ({ userId, token }) => {
             placeholder="Quantity"
           />
         </Form.Item>
-
         <Form.Item>
           <Button
             type="primary"
             htmlType="submit"
             loading={loading}
             style={{ width: '100%' }}
+            className='bg-blue-500'
           >
             Add Book
           </Button>
