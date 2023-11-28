@@ -3,11 +3,13 @@ import { Form, Input, Button, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { callApi } from '../utils/axios_client';
+import { useUser } from '../Usercontext';
 
 const Login_Page = ({ onLogin }) => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const { updateUser } = useUser();
 
   const handleLogin = async () => {
     try {
@@ -16,25 +18,26 @@ const Login_Page = ({ onLogin }) => {
         password: password,
       });
 
-      console.log(res)
+      console.log(res);
 
       if (res.status === 200) {
-        if(res.data.login === "failed"){
+        if (res.data.login === "failed") {
+          console.log(res);
           message.error('Your username or password is wrong!');
-        }else{
+        } else {
           onLogin({
             username: userName,
-            userId: res.data,
+            userId: res.data.user_id,
           });
           message.success('Login successfully!');
-          // 自動跳轉到 Home page
+          // const userData = res.data; // 这一行似乎多余
+          updateUser({ username: userName, userId: res.data.user_id }); // 修复此行代码
+          // 自动跳转到 Home page
           setTimeout(() => {
             navigate("/");
           }, 1000);
         }
       }
-
-      return;
     } catch (error) {
       console.log(error);
 
