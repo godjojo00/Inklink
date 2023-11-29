@@ -27,7 +27,7 @@ const Login_Page = ({ onLogin }) => {
         } else {
           onLogin({
             username: userName,
-            userId: res.data.user_id,
+            user_id: res.data.user_id,
           });
           message.success('Login successfully!');
           // const userData = res.data; // 这一行似乎多余
