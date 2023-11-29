@@ -58,17 +58,16 @@ const PostRequest = ({ username, token, fetchRequests }) => {
                 request_info: {
                     poster_id: user.userId,
                     isbn_list: [values.isbn],
-                    no_of_copies_list: [values.quantity],
+                    no_of_copies_list: [parseInt(values.quantity)],
                     book_condition_list: [values.condition],
                 },
                 price: requestType === 'sell' ? values.price : undefined,
                 wishlist_description: requestType === 'exchange' ? values.wishList : undefined,
             };
-
             // Use callApi function instead of axios.post
             const response = await callApi(`http://localhost:8000/requests/${requestType}`, 
             'post', 
-            null, 
+            requestData, 
             {
                 Authorization: `Bearer ${token}`,
             }
