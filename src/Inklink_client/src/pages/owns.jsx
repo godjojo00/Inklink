@@ -5,13 +5,12 @@ import { callApi } from '../utils/axios_client';
 import { useUser } from '../Usercontext';
 import { useNavigate } from 'react-router-dom';
 
-const Owns = ({ token }) => {
+const Owns = ({ username, token }) => {
   const navigate = useNavigate();
   const { user } = useUser();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
-  console.log(user.userId)
   const columns = [
     {
       title: 'ISBN',
@@ -20,22 +19,40 @@ const Owns = ({ token }) => {
     },
     {
       title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
+      dataIndex: 'no_of_copies',
+      key: 'no_of_copies',
     },
   ];
 
-  // 修改函数名为 getBooks
-  const getBooks = async () => {
+  const getUserId = async () => {
+    console.log(user.userid, user.db_user_id, user.username, user.userId)
     try {
       if (!user) {
         navigate("/login");
         return;
       }
-
-      // 使用 callApi 函数发起 GET 请求
       const response = await callApi(
-        `http://localhost:8000/users/own/${user.user_id}`,
+        `http://localhost:8000/users/own/${user.userId}`,
+        'get',
+        null,
+        {
+          Authorization: `Bearer ${token}`,
+        }
+      );
+      if (response.status === 200) {
+        setBooks(response.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchBooks = async () => {
+    try {
+      await getUserId();
+
+      const response = await callApi(
+        `http://localhost:8000/users/own/${user.userId}`,
         'get',
         null,
         {
@@ -47,20 +64,20 @@ const Owns = ({ token }) => {
         setBooks(response.data);
       }
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   };
 
   useEffect(() => {
-    getBooks();
-  }, [user, token]);
+    fetchBooks();
+  }, [user.user_id, token]);
 
   const onFinish = async (values) => {
     try {
       setLoading(true);
 
       // 在添加书籍前先获取用户ID
-      await getBooks();
+      await getUserId();
 
       // 使用 callApi 函数发起 POST 请求
       const response = await callApi(
@@ -79,7 +96,7 @@ const Owns = ({ token }) => {
       if (response.status === 201) {
         message.success('Book added successfully!');
         form.resetFields();
-        getBooks();
+        fetchBooks();
       }
     } catch (error) {
       console.error(error);
