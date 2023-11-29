@@ -54,4 +54,4 @@ async def create_book(book: BookBase, db: db_dependency):
             if db_book_author_exist is None:
                 db.add(db_book_author)
                 db.commit()
-        return new_isbn.isbn
+        return {"isbn": new_isbn.isbn}
