@@ -25,7 +25,6 @@ const Owns = ({ username, token }) => {
   ];
 
   const getUserId = async () => {
-    console.log(user.userid, user.db_user_id, user.username, user.userId)
     try {
       if (!user) {
         navigate("/login");
@@ -66,11 +65,12 @@ const Owns = ({ username, token }) => {
     } catch (error) {
       console.log(error);
     }
+    useEffect(() => {
+      fetchBooks();
+    }, [user.userId, token]);
   };
 
-  useEffect(() => {
-    fetchBooks();
-  }, [user.user_id, token]);
+
 
   const onFinish = async (values) => {
     try {
