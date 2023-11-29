@@ -71,13 +71,13 @@ async def get_sell_request(request_id: int, db: db_dependency):
     else:
         raise HTTPException(status_code=404, detail="Request id not found in selling requests")
 
-@router.patch("/sell/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.patch("/buy/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def buy_sell_request(request_id: int, buyer_id: int, db:db_dependency):
     db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
     db_sell_req = db.query(models.SellingRequest).filter(models.SellingRequest.request_id == request_id).first()
     if db_sell_req is None:
         raise HTTPException(status_code=404, detail="Selling request not found")
-    if not db_req.status == "Remained":
+    if db_req.status != "Remained":
         raise HTTPException(status_code=400, detail="Selling request is not available")
     if db_req.poster_id == buyer_id:
         raise HTTPException(status_code=400, detail="Cannot buy sell requests posted by yourself")
@@ -85,7 +85,7 @@ async def buy_sell_request(request_id: int, buyer_id: int, db:db_dependency):
     db_sell_req.buying_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     db_req.status = "Accepted"
     db.commit()
-    utils.add_copies_owned(buyer_id, request_id, db)
+    utils.add_copies_owned("request", buyer_id, request_id, db)
     return
 
 @router.post("/exchange", status_code=status.HTTP_201_CREATED)
@@ -134,3 +134,31 @@ async def get_exchange_request(request_id: int, db: db_dependency):
         return merged_result
     else:
         raise HTTPException(status_code=404, detail="Request id not found in exchange requests")
+    
+@router.patch("/confirm-exchange/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def confirm_exchange_response(request_id: int, response_id: int, user_id: int, db:db_dependency):
+    db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
+    db_ex_req = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).first()
+    db_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.response_id == response_id).first()
+    if db_ex_req is None:
+        raise HTTPException(status_code=404, detail="Exchange request not found")
+    if db_req.status != "Remained":
+        raise HTTPException(status_code=400, detail="Exchange request is not available")
+    if db_req.poster_id != user_id:
+        raise HTTPException(status_code=400, detail="Exchange request is posted by some other user")
+    if db_ex_res is None:
+        raise HTTPException(status_code=404, detail="Exchange response not found")
+    if db_ex_res.request_id != request_id:
+        raise HTTPException(status_code=400, detail="Exchange response does not correspond to the request")
+    if db_ex_res.status != "Available":
+        raise HTTPException(status_code=400, detail="Exchange response is not available")
+    
+    db_ex_res.status = "Accepted"
+    db_req.status = "Accepted"
+    db_other_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == request_id, models.ExchangeResponse.response_id != response_id).all()
+    for record in db_other_ex_res:
+        record.status = "Rejected"
+        utils.add_copies_owned("response", record.responder_id, record.response_id, db)
+    utils.add_copies_owned("request", db_ex_res.responder_id, db_req.request_id, db)
+    db.commit()
+    return

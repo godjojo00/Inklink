@@ -19,11 +19,16 @@ def reduce_copies_owned(user_id, isbn, reduced_no_of_copies, db):
         db.commit()
         return True
     
-def add_copies_owned(user_id, request_id, db):
-    db_req = db.query(models.SellExchange).filter(models.SellExchange.request_id == request_id).all()
-    if not db_req:
-        raise HTTPException(status_code=404, detail=f"No records found for request_id {request_id}")
-    for record in db_req:
+# type = "request" or "response"
+def add_copies_owned(type, user_id, request_response__id, db):
+    result = None
+    if type == "request":
+        result = db.query(models.SellExchange).filter(models.SellExchange.request_id == request_response__id).all()
+    elif type == "response":
+        result = db.query(models.ProposeToExchange).filter(models.ProposeToExchange.response_id == request_response__id).all()
+    if not result:
+        raise HTTPException(status_code=404, detail=f"No records found for request or response id {request_response__id}")
+    for record in result:
         db_own = db.query(models.Owns).filter(models.Owns.owner_id == user_id, models.Owns.isbn == record.isbn).first()
         if db_own is None:
             db_new_own = models.Owns(

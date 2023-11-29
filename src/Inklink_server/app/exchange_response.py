@@ -21,10 +21,15 @@ class ResponseBase(BaseModel):
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_exchange_response(exchange_res: ResponseBase, db: db_dependency):
     query = db.query(models.Request).filter(models.Request.request_id == exchange_res.request_id).first()
-    if (not query) or (not query.is_type == "Exchange"):
+    if (not query) or (query.is_type != "Exchange"):
         raise HTTPException(status_code=404, detail="Exchange request not found")
-    elif not query.status == "Remained":
+    if not query.status == "Remained":
         raise HTTPException(status_code=400, detail="Exchange request is not available for proposals")
+    if query.poster_id == exchange_res.responder_id:
+        raise HTTPException(status_code=400, detail="Cannot respond to your own exchange request")
+    first_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == exchange_res.request_id, models.ExchangeResponse.responder_id == exchange_res.responder_id).first()
+    if first_res is not None:
+        raise HTTPException(status_code=400, detail="The user has already responded to this exchange request")
     
     have_enough_books = utils.check_enough_books(exchange_res.responder_id, exchange_res.isbn_list, exchange_res.no_of_copies_list, db)
     if not have_enough_books:
