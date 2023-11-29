@@ -16,6 +16,15 @@ class UserBase(BaseModel):
     email: str
     phone_number: str
 
+class LoginBase(BaseModel):
+    username: str
+    password: str
+
+class OwnBase(BaseModel):
+    user_id: int
+    isbn_list: List[str]
+    no_of_copies_list: List[int]
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_new_user(user: UserBase, db: db_dependency):
     new_user = models.User(
@@ -27,17 +36,12 @@ async def create_new_user(user: UserBase, db: db_dependency):
     )
     db_username_exist = db.query(models.User).filter(new_user.username == models.User.username).first()
     if db_username_exist is not None:
-        raise HTTPException(status_code=404, detail="Username already exists")
+        raise HTTPException(status_code=400, detail="Username already exists")
     else:
         db.add(new_user)
         db.commit()
-        return new_user.user_id
+        return {"user_id": new_user.user_id}
 
-class LoginBase(BaseModel):
-    username: str
-    password: str
-
-    
 @router.post("/login", status_code=status.HTTP_200_OK)
 async def login(account: LoginBase, db: db_dependency):
     _account = models.User(username=account.username, password=account.password)
@@ -50,7 +54,6 @@ async def login(account: LoginBase, db: db_dependency):
         else: 
             return {"login": "failed"}
 
-
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)
 async def get_user(user_id: int, db: db_dependency):
     _user = models.User(user_id = user_id)
@@ -59,11 +62,6 @@ async def get_user(user_id: int, db: db_dependency):
         raise HTTPException(status_code=404, detail="User_id doesn't exist")
     else:
         return db_user_id.__dict__
-    
-class OwnBase(BaseModel):
-    user_id: int
-    isbn_list: List[str]
-    no_of_copies_list: List[int]
 
 @router.post("/own", status_code=status.HTTP_201_CREATED)
 async def user_own(own: OwnBase, db: db_dependency):
