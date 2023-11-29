@@ -9,7 +9,7 @@ const Home = () => {
     // 获取卖书贴文
     const fetchSellPosts = async () => {
       try {
-        const sellResponse = await callApi('http://localhost:8000/requests/sell', 'post');
+        const sellResponse = await callApi('http://localhost:8000/requests/sell', 'get');
         setSellPosts(sellResponse.data);
       } catch (error) {
         console.error('Failed to fetch sell posts:', error);
