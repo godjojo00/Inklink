@@ -8,6 +8,7 @@ import Header from './component/header';
 import RequestPage from './pages/requestpage';
 import { UserProvider } from './Usercontext';
 import PrivateRoute from './PrivateRoute';
+import PostRequest from './pages/postrequest';
 
 function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
@@ -37,6 +38,7 @@ function App() {
             <Route element={<Login_Page onLogin={handleLogin} />} path="/login" />
             <Route element={<Owns />} path="/owns" />
             <Route element={<RequestPage />} path="/request" />
+            <Route element={<PostRequest />} path="/postrequest" />
           </Routes>
         </div>
       </UserProvider>
