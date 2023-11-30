@@ -2,6 +2,7 @@ import React from 'react';
 import { Form, Input, Button, notification } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { UserOutlined, LockOutlined, MailOutlined, MobileOutlined } from '@ant-design/icons';
+import { callApi } from '../utils/axios_client';
 
 const SignUp_Page = () => {
   let navigate = useNavigate();
@@ -14,20 +15,32 @@ const SignUp_Page = () => {
       const { username, phone_number, email, password } = values;
 
       // 使用上述数据进行注册
-
+      const response = await callApi('http://localhost:8000/users/', 'post', {
+        username,
+        phone_number,
+        email,
+        password,
+      });
       // 注册成功后的处理，例如重定向到登录页
-      (() => {
+      if (response.status === 201) {
         notification['success']({
-          message: "Registered Successfully!",
-          description: "You will be redirected to Login Page after 3 seconds.",
-          placement: "topLeft",
-          duration: 2.2
-        })
-      })();
+          message: 'Registered Successfully!',
+          description: 'You will be redirected to Login Page after 3 seconds.',
+          placement: 'topLeft',
+          duration: 2.2,
+        });
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 3000);
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } else {
+        console.log(b)
+        notification['error']({
+          message: 'Registration Failed',
+          description: 'Failed to register. Please try again.',
+          placement: 'topLeft',
+        });
+      }
     } catch (error) {
       console.log(error);
     }

@@ -4,9 +4,10 @@ import Home from './pages/Home';
 import SignUp_Page from './pages/signUp_page';
 import Login_Page from './pages/login';
 import Owns from './pages/owns';
+import PostRequest from './pages/postrequest';
 import Header from './component/header';
 import RequestPage from './pages/requestpage';
-import { UserProvider } from './pages/Usercontext';
+import { UserProvider } from './Usercontext';
 import PrivateRoute from './PrivateRoute';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
             <Route element={<Login_Page onLogin={handleLogin} />} path="/login" />
             <Route element={<Owns />} path="/owns" />
             <Route element={<RequestPage />} path="/request" />
+            <Route element={<PostRequest />} path="/postrequest" />
           </Routes>
         </div>
       </UserProvider>

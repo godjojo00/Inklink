@@ -13,7 +13,7 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
         <Link to="/owns" className="mr-4">
           我的藏書
         </Link>
-        <Link to="/pages/post" className="mr-4">發文</Link>
+        <Link to="/postrequest" className="mr-4">發文</Link>
         {isLoggedIn ? (
           <>
             <span className="mr-4">{username}</span>
