@@ -76,7 +76,6 @@ const PostRequest = ({ username, token, fetchRequests }) => {
             if (response.status === 201) {
                 message.success('Request published successfully!');
                 form.resetFields();
-                fetchRequests(); // Refresh the requests list
             }
         } catch (error) {
             console.error(error);
