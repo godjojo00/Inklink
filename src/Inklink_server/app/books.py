@@ -55,3 +55,16 @@ async def create_book(book: BookBase, db: db_dependency):
                 db.add(db_book_author)
                 db.commit()
         return {"isbn": new_isbn.isbn}
+    
+@router.get("/book", status_code=status.HTTP_200_OK)
+async def get_book_info(isbn: str, db: db_dependency):
+    result = db.query(models.BookIsbns, models.Book).join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id).filter(models.BookIsbns.isbn == isbn).first()
+    if result is None:
+        raise HTTPException(status_code=404, detail="ISBN not found in database")
+    book_isbn, book_info = result
+    merged_result = {**book_isbn.__dict__, **book_info.__dict__}
+    merged_result.pop('_sa_instance_state', None)
+    authors = db.query(models.BookAuthors).filter(models.BookAuthors.edition_id == book_isbn.edition_id).all()
+    author_list = [author.author_name for author in authors]
+    merged_result["author_list"] = author_list
+    return merged_result
