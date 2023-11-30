@@ -4,7 +4,6 @@ import { UserOutlined, BookOutlined } from '@ant-design/icons';
 import { callApi } from '../utils/axios_client';
 import { useUser } from '../Usercontext';
 import { useNavigate } from 'react-router-dom';
-
 const Owns = ({ username, token }) => {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -23,7 +22,9 @@ const Owns = ({ username, token }) => {
       key: 'no_of_copies',
     },
   ];
-
+  useEffect(() => {
+    fetchBooks();
+  }, [user.user_id, token]);
   const getUserId = async () => {
     try {
       if (!user) {
@@ -33,7 +34,7 @@ const Owns = ({ username, token }) => {
       const response = await callApi(
         `http://localhost:8000/users/own/${user.userId}`,
         'get',
-        null,
+        user.userId,
         {
           Authorization: `Bearer ${token}`,
         }
@@ -53,7 +54,7 @@ const Owns = ({ username, token }) => {
       const response = await callApi(
         `http://localhost:8000/users/own/${user.userId}`,
         'get',
-        null,
+        user.userId,
         {
           Authorization: `Bearer ${token}`,
         }
@@ -67,7 +68,7 @@ const Owns = ({ username, token }) => {
     }
     useEffect(() => {
       fetchBooks();
-    }, [user.userId, token]);
+    }, [user.user_id, token]);
   };
 
 
@@ -84,15 +85,14 @@ const Owns = ({ username, token }) => {
         'http://localhost:8000/users/own',
         'post',
         {
-          user_id: user.user_id,
-          isbn: values.isbn,
-          quantity: values.quantity,
+          user_id: user.userId,
+          isbn_list: [values.isbn],
+          no_of_copies_list: [parseInt(values.no_of_copies)],
         },
         {
           Authorization: `Bearer ${token}`,
         }
       );
-
       if (response.status === 201) {
         message.success('Book added successfully!');
         form.resetFields();
@@ -132,7 +132,7 @@ const Owns = ({ username, token }) => {
         </Form.Item>
 
         <Form.Item
-          name="quantity"
+          name="no_of_copies"
           label="Quantity"
           rules={[
             {
