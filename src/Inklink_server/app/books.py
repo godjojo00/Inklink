@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 
 from database import db_dependency
@@ -23,7 +24,8 @@ async def create_book(book: BookBase, db: db_dependency):
     db_isbn_exist = db.query(models.BookIsbns).filter(new_isbn.isbn == models.BookIsbns.isbn).first()
     if db_isbn_exist is not None:
         raise HTTPException(status_code=404, detail="ISBN already exists")
-    else:
+    
+    try:
         new_book = models.Book(
             title = book.title,
             subtitle = book.subtitle,
@@ -38,10 +40,9 @@ async def create_book(book: BookBase, db: db_dependency):
             new_book.edition_id = db_book_exist.__dict__['edition_id']
         else:
             db.add(new_book)
-            db.commit()
+            db.flush()
         new_isbn.edition_id=new_book.edition_id
         db.add(new_isbn)
-        db.commit()
         for author_name in book.author_list:
             db_book_author = models.BookAuthors(
                 edition_id = new_book.edition_id,
@@ -53,8 +54,13 @@ async def create_book(book: BookBase, db: db_dependency):
             ).first()
             if db_book_author_exist is None:
                 db.add(db_book_author)
-                db.commit()
-        return {"isbn": new_isbn.isbn}
+                
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    return {"isbn": new_isbn.isbn}
     
 @router.get("/book", status_code=status.HTTP_200_OK)
 async def get_book_info(isbn: str, db: db_dependency):

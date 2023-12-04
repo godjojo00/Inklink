@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 import models
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 
 from database import db_dependency
@@ -37,10 +38,13 @@ async def create_new_user(user: UserBase, db: db_dependency):
     db_username_exist = db.query(models.User).filter(new_user.username == models.User.username).first()
     if db_username_exist is not None:
         raise HTTPException(status_code=400, detail="Username already exists")
-    else:
+    try:
         db.add(new_user)
         db.commit()
-        return {"user_id": new_user.user_id}
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"user_id": new_user.user_id}
 
 @router.post("/login", status_code=status.HTTP_200_OK)
 async def login(account: LoginBase, db: db_dependency):
@@ -69,20 +73,22 @@ async def user_own(own: OwnBase, db: db_dependency):
     db_user_id = db.query(models.User).filter(_user.user_id == models.User.user_id).first()
     if db_user_id is None:
         raise HTTPException(status_code=404, detail="User_id doesn't exist")
-    else:
+    try:
         for i in range(len(own.isbn_list)):
             _book = models.BookIsbns(isbn = own.isbn_list[i])
             db_book = db.query(models.BookIsbns).filter(_book.isbn == models.BookIsbns.isbn).first()
             if db_book is None:
                 raise HTTPException(status_code=404, detail="Book with ISBN doesn't exist in the database")
-            else:
-                db_own = models.Owns(
-                    owner_id = own.user_id,
-                    isbn = own.isbn_list[i],
-                    no_of_copies = own.no_of_copies_list[i]
-                )
-                db.add(db_own)
-                db.commit()
+            db_own = models.Owns(
+                owner_id = own.user_id,
+                isbn = own.isbn_list[i],
+                no_of_copies = own.no_of_copies_list[i]
+            )
+            db.add(db_own)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/own/{user_id}", status_code=status.HTTP_200_OK)
 async def get_user_own(user_id: int, db: db_dependency):
