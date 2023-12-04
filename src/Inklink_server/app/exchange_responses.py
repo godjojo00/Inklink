@@ -1,5 +1,6 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from pydantic import BaseModel
 from typing import List
 
@@ -34,7 +35,8 @@ async def create_exchange_response(exchange_res: ResponseBase, db: db_dependency
     have_enough_books = utils.check_enough_books(exchange_res.responder_id, exchange_res.isbn_list, exchange_res.no_of_copies_list, db)
     if not have_enough_books:
         raise HTTPException(status_code=404, detail="The user does not have enough books")
-    else:
+    
+    try:
         new_res = models.ExchangeResponse(
             status = "Available",
             response_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -42,7 +44,7 @@ async def create_exchange_response(exchange_res: ResponseBase, db: db_dependency
             request_id = exchange_res.request_id
         )
         db.add(new_res)
-        db.commit()
+        db.flush()
 
         for i in range(len(exchange_res.isbn_list)):
             new_propose_ex = models.ProposeToExchange(
@@ -53,8 +55,12 @@ async def create_exchange_response(exchange_res: ResponseBase, db: db_dependency
                 request_id = exchange_res.request_id
             )
             db.add(new_propose_ex)
-            db.commit()
             utils.reduce_copies_owned(exchange_res.responder_id, exchange_res.isbn_list[i], exchange_res.no_of_copies_list[i], db)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
     return {"response_id": new_res.response_id}
 
 @router.get("/{response_id}", status_code=status.HTTP_200_OK)

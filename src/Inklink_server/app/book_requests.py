@@ -1,6 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 
 from database import db_dependency
@@ -30,7 +31,8 @@ async def create_sell_request(sell_req: SellRequestBase, db: db_dependency):
     have_enough_books = utils.check_enough_books(sell_req.request_info.poster_id, sell_req.request_info.isbn_list, sell_req.request_info.no_of_copies_list, db)
     if not have_enough_books:
         raise HTTPException(status_code=404, detail="The user does not have enough books")
-    else:
+    
+    try:
         new_req = models.Request(
             status = "Remained",
             posting_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -38,14 +40,13 @@ async def create_sell_request(sell_req: SellRequestBase, db: db_dependency):
             is_type = "Sell"
         )
         db.add(new_req)
-        db.commit()
+        db.flush()
 
         new_sell_req = models.SellingRequest(
             request_id = new_req.request_id,
             price = sell_req.price
         )
         db.add(new_sell_req)
-        db.commit()
 
         for i in range(len(sell_req.request_info.isbn_list)):
             new_sell_exchange = models.SellExchange(
@@ -55,8 +56,13 @@ async def create_sell_request(sell_req: SellRequestBase, db: db_dependency):
                 book_condition = sell_req.request_info.book_condition_list[i]
             )
             db.add(new_sell_exchange)
-            db.commit()
             utils.reduce_copies_owned(sell_req.request_info.poster_id, sell_req.request_info.isbn_list[i], sell_req.request_info.no_of_copies_list[i], db)
+
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
     return {"request_id": new_req.request_id}
 
 @router.get("/sell/{request_id}", status_code=status.HTTP_200_OK)
@@ -87,11 +93,15 @@ async def buy_sell_request(request_id: int, buyer_id: int, db:db_dependency):
         raise HTTPException(status_code=400, detail="Selling request is not available")
     if db_req.poster_id == buyer_id:
         raise HTTPException(status_code=400, detail="Cannot buy sell requests posted by yourself")
-    db_sell_req.buyer_id = buyer_id
-    db_sell_req.buying_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    db_req.status = "Accepted"
-    db.commit()
-    utils.add_copies_owned("request", buyer_id, request_id, db)
+    try:
+        db_sell_req.buyer_id = buyer_id
+        db_sell_req.buying_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db_req.status = "Accepted"
+        utils.add_copies_owned("request", buyer_id, request_id, db)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     return
 
 @router.post("/exchange", status_code=status.HTTP_201_CREATED)
@@ -99,7 +109,8 @@ async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_depe
     have_enough_books = utils.check_enough_books(exchange_req.request_info.poster_id, exchange_req.request_info.isbn_list, exchange_req.request_info.no_of_copies_list, db)
     if not have_enough_books:
         raise HTTPException(status_code=400, detail="The user does not have enough books")
-    else:
+    
+    try:
         new_req = models.Request(
             status = "Remained",
             posting_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -107,14 +118,13 @@ async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_depe
             is_type = "Exchange"
         )
         db.add(new_req)
-        db.commit()
+        db.flush()
 
         new_ex_req = models.ExchangeRequest(
             request_id = new_req.request_id,
             wishlist_description = exchange_req.wishlist_description
         )
         db.add(new_ex_req)
-        db.commit()
 
         for i in range(len(exchange_req.request_info.isbn_list)):
             new_sell_exchange = models.SellExchange(
@@ -124,8 +134,12 @@ async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_depe
                 book_condition = exchange_req.request_info.book_condition_list[i]
             )
             db.add(new_sell_exchange)
-            db.commit()
             utils.reduce_copies_owned(exchange_req.request_info.poster_id, exchange_req.request_info.isbn_list[i], exchange_req.request_info.no_of_copies_list[i], db)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
     return {"request_id": new_req.request_id}
 
 
@@ -165,14 +179,18 @@ async def confirm_exchange_response(request_id: int, response_id: int, user_id: 
     if db_ex_res.status != "Available":
         raise HTTPException(status_code=400, detail="Exchange response is not available")
     
-    db_ex_res.status = "Accepted"
-    db_req.status = "Accepted"
-    db_other_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == request_id, models.ExchangeResponse.response_id != response_id).all()
-    for record in db_other_ex_res:
-        record.status = "Rejected"
-        utils.add_copies_owned("response", record.responder_id, record.response_id, db)
-    utils.add_copies_owned("request", db_ex_res.responder_id, db_req.request_id, db)
-    db.commit()
+    try:
+        db_ex_res.status = "Accepted"
+        db_req.status = "Accepted"
+        db_other_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == request_id, models.ExchangeResponse.response_id != response_id).all()
+        for record in db_other_ex_res:
+            record.status = "Rejected"
+            utils.add_copies_owned("response", record.responder_id, record.response_id, db)
+        utils.add_copies_owned("request", db_ex_res.responder_id, db_req.request_id, db)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     return
 
 @router.get("/exchange/{request_id}/responses", status_code=status.HTTP_200_OK)
