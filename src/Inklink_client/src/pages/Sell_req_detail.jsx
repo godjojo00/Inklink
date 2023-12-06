@@ -26,7 +26,7 @@ const SellRequestDetail = () => {
         setLoading(false);
       }
     };
-
+//ab
     fetchRequestDetails();
   }, [requestId]);
 
