@@ -50,7 +50,10 @@ const Owns = ({ username, token }) => {
   const fetchBooks = async () => {
     try {
       await getUserId();
-
+      if (!user) {
+        navigate("/login");
+        return;
+      }
       const response = await callApi(
         `http://localhost:8000/users/own/${user.userId}`,
         'get',

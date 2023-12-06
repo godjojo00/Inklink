@@ -9,6 +9,7 @@ import Header from './component/header';
 import RequestPage from './pages/requestpage';
 import { UserProvider } from './Usercontext';
 import PrivateRoute from './PrivateRoute';
+import ExchangePage from './pages/exchangePage';
 
 function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
@@ -34,11 +35,13 @@ function App() {
           <Header isLoggedIn={isLoggedIn} username={username} onLogout={handleLogout} />
           <Routes>
             <Route element={<Home />} path="/" />
+            <Route path="/exchange/:request_id" element={<ExchangePage />} />
             <Route element={<SignUp_Page onLogin={handleLogin} />} path="/signUp" />
             <Route element={<Login_Page onLogin={handleLogin} />} path="/login" />
             <Route element={<Owns />} path="/owns" />
             <Route element={<RequestPage />} path="/request" />
             <Route element={<PostRequest />} path="/postrequest" />
+            <Route element={<ExchangePage />} path='/exchange' />
           </Routes>
         </div>
       </UserProvider>

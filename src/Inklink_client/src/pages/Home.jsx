@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Table } from 'antd';
+import { Table, Button } from 'antd';
 import { callApi } from '../utils/axios_client';
-
+import { Link } from 'react-router-dom';
 const Home = () => {
   const [sellPosts, setSellPosts] = useState([]);
   const [exchangePosts, setExchangePosts] = useState([]);
-
   useEffect(() => {
     // 获取卖书贴文
     const fetchSellPosts = async () => {
       try {
         const requests = [];
-        for (let i = 1; i <= 1500; i++) {
+        for (let i = 1550; i >= 1; i--) {
           try {
             const response = await callApi(`http://localhost:8000/requests/sell/${i}`, 'get');
-            requests.push(response.data);
+            const data = response.data;
+            if (data.status === 'Remained') {
+              requests.push(data);
+            }
           } catch (error) {
             // 如果是 404 错误，说明请求不存在，可以忽略
             if (error.response?.status !== 404) {
@@ -36,10 +38,15 @@ const Home = () => {
     const fetchExchangePosts = async () => {
       try {
         const requests = [];
-        for (let i = 1; i <= 1500; i++) {
+        for (let i = 1550; i >= 1; i--) {
           try {
             const response = await callApi(`http://localhost:8000/requests/exchange/${i}`, 'get');
-            requests.push(response.data);
+            const data = response.data;
+
+            // 只保留 status 为 Remained 的贴文
+            if (data.status === 'Remained') {
+              requests.push(data);
+            }
           } catch (error) {
             // 如果是 404 错误，说明请求不存在，可以忽略
             if (error.response?.status !== 404) {
@@ -60,7 +67,11 @@ const Home = () => {
     fetchSellPosts();
     fetchExchangePosts();
   }, []);
-
+  const renderDetailLink = (record, type) => (
+    <Link to={`/${type}/${record.request_id}`}>
+      <Button className='bg-blue-400' type="primary">Detail</Button>
+    </Link>
+  );
   const sellColumns = [
     {
       title: 'Request ID',
@@ -106,6 +117,11 @@ const Home = () => {
       title: 'Quantity',
       dataIndex: 'no_of_copies_list',
       key: 'no_of_copies_list',
+    },
+    {
+      title: 'Detail',
+      key: 'detail',
+      render: (text, record) => renderDetailLink(record, 'exchange'),
     },
   ];
 
