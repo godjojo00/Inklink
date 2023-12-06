@@ -7,6 +7,7 @@ import Owns from './pages/owns';
 import PostRequest from './pages/postrequest';
 import Header from './component/header';
 import RequestPage from './pages/requestpage';
+import SellRequestDetail from './pages/Sell_req_detail';
 import { UserProvider } from './Usercontext';
 import PrivateRoute from './PrivateRoute';
 
@@ -39,6 +40,8 @@ function App() {
             <Route element={<Owns />} path="/owns" />
             <Route element={<RequestPage />} path="/request" />
             <Route element={<PostRequest />} path="/postrequest" />
+            <Route element={<SellRequestDetail />} path="/sellrequestdetail/:requestId" />
+
           </Routes>
         </div>
       </UserProvider>
@@ -46,5 +49,6 @@ function App() {
     </Router>
   );
 }
+
 
 export default App;
