@@ -1,8 +1,9 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
-from typing import List
+from typing import List, Optional
 
 from database import db_dependency
 import models, utils
@@ -64,6 +65,24 @@ async def create_sell_request(sell_req: SellRequestBase, db: db_dependency):
         raise HTTPException(status_code=500, detail=str(e))
     
     return {"request_id": new_req.request_id}
+
+@router.get("/sell", status_code=status.HTTP_200_OK)
+async def search_sell_requests(db: db_dependency, 
+                               seller_name: Optional[str] = None, 
+                               price_limit: Optional[float] = None,
+                               status: Optional[str] = "All"):
+    result = db.query(models.SellingRequest.request_id).join(models.Request, models.SellingRequest.request_id == models.Request.request_id)
+    
+    if seller_name is not None:
+        result = result.join(models.User, models.Request.poster_id == models.User.user_id).filter(models.User.username == seller_name)
+    if price_limit is not None:
+        result = result.filter(models.SellingRequest.price <= price_limit)
+    if status != "All":
+        result = result.filter(models.Request.status == status)
+    
+    result = result.all()
+    sell_request_list = [item[0] for item in result]
+    return {"sell_request_list": sell_request_list}
 
 @router.get("/sell/{request_id}", status_code=status.HTTP_200_OK)
 async def get_sell_request(request_id: int, db: db_dependency):
@@ -142,6 +161,23 @@ async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_depe
     
     return {"request_id": new_req.request_id}
 
+@router.get("/exchange", status_code=status.HTTP_200_OK)
+async def search_exchange_requests(db: db_dependency, 
+                               seller_name: Optional[str] = None, 
+                               description: Optional[str] = None,
+                               status: Optional[str] = "All"):
+    result = db.query(models.ExchangeRequest.request_id).join(models.Request, models.ExchangeRequest.request_id == models.Request.request_id)
+    
+    if seller_name is not None:
+        result = result.join(models.User, models.Request.poster_id == models.User.user_id).filter(models.User.username == seller_name)
+    if description is not None:
+        result = result.filter(func.lower(models.ExchangeRequest.wishlist_description).contains(func.lower(description)))
+    if status != "All":
+        result = result.filter(models.Request.status == status)
+    
+    result = result.all()
+    ex_request_list = [item[0] for item in result]
+    return {"exchange_request_list": ex_request_list}
 
 @router.get("/exchange/{request_id}", status_code=status.HTTP_200_OK)
 async def get_exchange_request(request_id: int, db: db_dependency):
