@@ -68,11 +68,11 @@ async def get_user(user_id: int, db: db_dependency):
         return db_user_id.__dict__
 
 @router.post("/own", status_code=status.HTTP_201_CREATED)
-async def user_own(own: OwnBase, db: db_dependency):
+async def create_user_own(own: OwnBase, db: db_dependency):
     _user = models.User(user_id = own.user_id)
     db_user_id = db.query(models.User).filter(_user.user_id == models.User.user_id).first()
     if db_user_id is None:
-        raise HTTPException(status_code=404, detail="User_id doesn't exist")
+        raise HTTPException(status_code=404, detail="User id doesn't exist")
     try:
         for i in range(len(own.isbn_list)):
             _book = models.BookIsbns(isbn = own.isbn_list[i])
@@ -95,6 +95,31 @@ async def get_user_own(user_id: int, db: db_dependency):
     _user = models.User(user_id = user_id)
     db_user_id = db.query(models.User).filter(_user.user_id == models.User.user_id).first()
     if db_user_id is None:
-        raise HTTPException(status_code=404, detail="User_id doesn't exist")
+        raise HTTPException(status_code=404, detail="User id doesn't exist")
     else:
         return db.query(models.Owns).filter(user_id == models.Owns.owner_id).all()
+    
+@router.patch("/own", status_code=status.HTTP_200_OK)
+async def update_user_own(own: OwnBase, db: db_dependency):
+    _user = models.User(user_id = own.user_id)
+    db_user_id = db.query(models.User).filter(_user.user_id == models.User.user_id).first()
+    if db_user_id is None:
+        raise HTTPException(status_code=404, detail="User id doesn't exist")
+    try:
+        for i in range(len(own.isbn_list)):
+            _book = models.BookIsbns(isbn = own.isbn_list[i])
+            db_book = db.query(models.BookIsbns).filter(_book.isbn == models.BookIsbns.isbn).first()
+            if db_book is None:
+                raise HTTPException(status_code=404, detail="Book with ISBN doesn't exist in the database")
+            
+            db_own = db.query(models.Owns).filter(models.Owns.owner_id == own.user_id, models.Owns.isbn == own.isbn_list[i]).first()
+            if db_own is None:
+                raise HTTPException(status_code=404, detail="Ownership record not found")
+            if own.no_of_copies_list[i] == 0:
+                db.delete(db_own)
+            else:
+                db_own.no_of_copies = own.no_of_copies_list[i]
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
