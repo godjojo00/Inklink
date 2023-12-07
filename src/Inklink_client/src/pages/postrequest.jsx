@@ -118,7 +118,16 @@ const PostRequest = ({ username, token, fetchRequests }) => {
                                         <Form.Item
                                             {...restField}
                                             name={[name, 'isbn']}
-                                            rules={[/* ... your ISBN validation rules ... */]}
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    message: 'Please enter the ISBN!',
+                                                },
+                                                {
+                                                    pattern: /^(?:\d{10}|\d{13})$/,
+                                                    message: 'ISBN must be a string with 10 or 13 characters!',
+                                                },
+                                            ]}
                                             style={{ flex: 1, marginRight: 8 }}
                                         >
                                             <Input placeholder="ISBN" />
@@ -126,7 +135,21 @@ const PostRequest = ({ username, token, fetchRequests }) => {
                                         <Form.Item
                                             {...restField}
                                             name={[name, 'quantity']}
-                                            rules={[/* ... your quantity validation rules ... */]}
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    message: 'Please enter the quantity!',
+                                                },
+                                                {
+                                                    validator(_, value) {
+                                                        const intValue = parseInt(value, 10);
+                                                        if (!isNaN(intValue) && intValue > 0) {
+                                                            return Promise.resolve();
+                                                        }
+                                                        return Promise.reject(new Error('Quantity must be a positive integer!'));
+                                                    },
+                                                },
+                                            ]}
                                             style={{ flex: 1, marginRight: 8 }}
                                         >
                                             <Input placeholder="Quantity" type="number" />
@@ -134,7 +157,12 @@ const PostRequest = ({ username, token, fetchRequests }) => {
                                         <Form.Item
                                             {...restField}
                                             name={[name, 'condition']}
-                                            rules={[/* ... your condition validation rules ... */]}
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    message: 'Please enter the condition!',
+                                                },
+                                            ]}
                                             style={{ flex: 1, marginRight: 8 }}
                                         >
                                             <Input placeholder="Condition" />
