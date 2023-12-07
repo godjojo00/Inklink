@@ -68,11 +68,6 @@ const Home = () => {
     fetchExchangePosts();
   }, []);
   
-  const renderDetailLink = (record, type) => (
-    <Link to={`/${type}/${record.request_id}`}>
-      <Button className='bg-blue-500' type="primary">Detail</Button>
-    </Link>
-  );
   const renderDetail = (record, type) => (
     <Link to={`/${type}/${record.request_id}`}>
       <Button className='bg-blue-500' type="primary">
@@ -101,7 +96,12 @@ const Home = () => {
       title: 'Quantity',
       dataIndex: 'no_of_copies_list',
       key: 'no_of_copies_list',
-      render: (text, record) => renderDetailLink(record, 'sell'),
+      render: (noOfCopiesList) => noOfCopiesList.join(', '),
+    },
+    {
+      title: 'Detail',
+      key: 'detail',
+      render: (text, record) => renderDetail(record, 'sell'),
     },
   ];
 
@@ -126,6 +126,7 @@ const Home = () => {
       title: 'Quantity',
       dataIndex: 'no_of_copies_list',
       key: 'no_of_copies_list',
+      render: (noOfCopiesList) => noOfCopiesList.join(', '),
     },
     {
       title: 'Detail',
