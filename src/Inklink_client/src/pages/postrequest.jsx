@@ -106,9 +106,8 @@ const PostRequest = ({ username, token, fetchRequests }) => {
                                 message: 'Please enter the ISBN!',
                             },
                             {
-                                len: 13,
-                                type: 'string',
-                                message: 'ISBN must be a string with 13 characters!',
+                                pattern: /^(?:\d{10}|\d{13})$/,
+                                message: 'ISBN must be a string with 10 or 13 characters!',
                             },
                         ]}
                     >

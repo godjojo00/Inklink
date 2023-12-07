@@ -4,71 +4,72 @@ import { callApi } from '../utils/axios_client';
 import { useParams } from 'react-router-dom';
 
 const ExchangePage = () => {
-    const [exchangePost, setExchangePost] = useState(null);
-    const [comments, setComments] = useState([]);
-    const [commentText, setCommentText] = useState('');
-    const { request_id } = useParams();
+  const [exchangePost, setExchangePost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const { request_id } = useParams(); // 使用 useParams 获取 request_id
 
-    useEffect(() => {
-        const fetchExchangePost = async () => {
-            try {
-                const response = await callApi(`http://localhost:8000/requests/exchange/${request_id}`, 'get');
-                setExchangePost(response.data);
-            } catch (error) {
-                console.error(`Failed to fetch exchange post with request_id ${request_id}:`, error);
-            }
-        };
-
-        const fetchComments = async () => {
-            try {
-                const response = await callApi(`http://localhost:8000/exchange/${request_id}/responses`, 'get');
-                setComments(response.data);
-            } catch (error) {
-                console.error(`Failed to fetch comments for exchange post with request_id ${request_id}:`, error);
-            }
-        };
-
-        fetchExchangePost();
-        fetchComments();
-    }, [request_id]);
-
-    const columns = [
-        {
-            title: 'ISBN',
-            dataIndex: 'isbn',
-            key: 'isbn',
-        },
-        {
-            title: 'Number of Copies',
-            dataIndex: 'no_of_copies',
-            key: 'no_of_copies',
-        },
-    ];
-
-    const onFinish = async () => {
-        try {
-            await callApi('http://localhost:8000/requests/exchange', 'post', {
-                request_id,
-                content: commentText,
-            });
-
-            // 刷新留言列表
-            const response = await callApi(`http://localhost:8000/requests/exchange/${request_id}/responses`, 'get');
-            setComments(response.data);
-
-            // 清空输入框
-            setCommentText('');
-
-            message.success('Comment added successfully!');
-        } catch (error) {
-            console.error('Failed to add comment:', error);
-            message.error('Failed to add comment. Please try again.');
-        }
+  useEffect(() => {
+    console.log('request_id:', request_id);
+    const fetchExchangePost = async () => {
+      try {
+        const response = await callApi(`http://localhost:8000/requests/exchange/${request_id}`, 'get');
+        setExchangePost(response.data);
+      } catch (error) {
+        console.error(`Failed to fetch exchange post with request_id ${request_id}:`, error);
+      }
     };
 
-    return (
-        <div className="container mx-auto mt-8">
-            {exchangePost && (
+    const fetchComments = async () => {
+      try {
+        const response = await callApi(`http://localhost:8000/requests/exchange/${request_id}/responses`, 'get');
+        setComments(response.data);
+      } catch (error) {
+        console.error(`Failed to fetch comments for exchange post with request_id ${request_id}:`, error);
+      }
+    };
+
+    fetchExchangePost();
+    fetchComments();
+  }, [request_id]);
+
+  const columns = [
+    {
+      title: 'ISBN',
+      dataIndex: 'isbn',
+      key: 'isbn',
+    },
+    {
+      title: 'Number of Copies',
+      dataIndex: 'no_of_copies',
+      key: 'no_of_copies',
+    },
+  ];
+
+  const onFinish = async () => {
+    try {
+      await callApi('http://localhost:8000/requests/exchange', 'post', {
+        request_id,
+        content: commentText,
+      });
+
+      // 刷新留言列表
+      const response = await callApi(`http://localhost:8000/requests/exchange/${request_id}/responses`, 'get');
+      setComments(response.data);
+
+      // 清空输入框
+      setCommentText('');
+
+      message.success('Comment added successfully!');
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      message.error('Failed to add comment. Please try again.');
+    }
+  };
+
+  return (
+    <div className="container mx-auto mt-8">
+ {exchangePost && (
                 <div className="mb-8">
                     <h2 className="text-2xl font-bold mb-4">Exchange Post Details</h2>
                     <Table dataSource={exchangePost.isbn_list.map((isbn, index) => ({ isbn, no_of_copies: exchangePost.no_of_copies_list[index] }))} columns={columns} rowKey="isbn" />
@@ -112,8 +113,8 @@ const ExchangePage = () => {
                     </Form>
                 </div>
             )}
-        </div>
-    );
+    </div>
+  );
 };
 
 export default ExchangePage;
