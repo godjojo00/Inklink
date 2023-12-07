@@ -10,7 +10,7 @@ const Home = () => {
     const fetchSellPosts = async () => {
       try {
         const requests = [];
-        for (let i = 1550; i >= 1; i--) {
+        for (let i = 1550; i >= 1400; i--) {
           try {
             const response = await callApi(`http://localhost:8000/requests/sell/${i}`, 'get');
             const data = response.data;
@@ -19,7 +19,7 @@ const Home = () => {
             }
           } catch (error) {
             // 如果是 404 错误，说明请求不存在，可以忽略
-            if (error.response?.status !== 404) {
+            if (error.response?.status === 404) {
               console.error(`Failed to fetch sell post with request_id ${i}:`, error);
             }
           }
@@ -38,7 +38,7 @@ const Home = () => {
     const fetchExchangePosts = async () => {
       try {
         const requests = [];
-        for (let i = 1550; i >= 1; i--) {
+        for (let i = 1550; i >= 1400; i--) {
           try {
             const response = await callApi(`http://localhost:8000/requests/exchange/${i}`, 'get');
             const data = response.data;
@@ -67,9 +67,17 @@ const Home = () => {
     fetchSellPosts();
     fetchExchangePosts();
   }, []);
+  
   const renderDetailLink = (record, type) => (
     <Link to={`/${type}/${record.request_id}`}>
-      <Button className='bg-blue-400' type="primary">Detail</Button>
+      <Button className='bg-blue-500' type="primary">Detail</Button>
+    </Link>
+  );
+  const renderDetail = (record, type) => (
+    <Link to={`/${type}/${record.request_id}`}>
+      <Button className='bg-blue-500' type="primary">
+        Detail
+      </Button>
     </Link>
   );
   const sellColumns = [
@@ -93,6 +101,7 @@ const Home = () => {
       title: 'Quantity',
       dataIndex: 'no_of_copies_list',
       key: 'no_of_copies_list',
+      render: (text, record) => renderDetailLink(record, 'sell'),
     },
   ];
 
@@ -121,7 +130,7 @@ const Home = () => {
     {
       title: 'Detail',
       key: 'detail',
-      render: (text, record) => renderDetailLink(record, 'exchange'),
+      render: (text, record) => renderDetail(record, 'exchange'),
     },
   ];
 
