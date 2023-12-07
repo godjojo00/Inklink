@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Radio } from 'antd';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { callApi } from '../utils/axios_client';
 import { useUser } from '../Usercontext';
 import { useNavigate } from 'react-router-dom';
@@ -57,13 +58,14 @@ const PostRequest = ({ username, token, fetchRequests }) => {
             const requestData = {
                 request_info: {
                     poster_id: user.userId,
-                    isbn_list: [values.isbn],
-                    no_of_copies_list: [parseInt(values.quantity)],
-                    book_condition_list: [values.condition],
+                    isbn_list: values.books.map(book => book.isbn),
+                    no_of_copies_list: values.books.map(book => parseInt(book.quantity)),
+                    book_condition_list: values.books.map(book => book.condition),
                 },
                 price: requestType === 'sell' ? values.price : undefined,
                 wishlist_description: requestType === 'exchange' ? values.wishList : undefined,
             };
+            
             // Use callApi function instead of axios.post
             const response = await callApi(`http://localhost:8000/requests/${requestType}`, 
             'post', 
@@ -97,57 +99,57 @@ const PostRequest = ({ username, token, fetchRequests }) => {
                         </Radio.Group>
                     </Form.Item>
 
-                    <Form.Item
-                        name="isbn"
-                        label="ISBN"
+                    <Form.List
+                        name="books"
                         rules={[
                             {
-                                required: true,
-                                message: 'Please enter the ISBN!',
-                            },
-                            {
-                                pattern: /^(?:\d{10}|\d{13})$/,
-                                message: 'ISBN must be a string with 10 or 13 characters!',
-                            },
-                        ]}
-                    >
-                        <Input placeholder="ISBN" />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="quantity"
-                        label="Quantity"
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please enter the quantity!',
-                            },
-                            {
-                                validator(_, value) {
-                                    const intValue = parseInt(value, 10);
-                                    if (!isNaN(intValue) && intValue > 0) {
-                                        return Promise.resolve();
+                                validator: async (_, books) => {
+                                    if (!books || books.length < 1) {
+                                        return Promise.reject(new Error('At least one book must be added'));
                                     }
-                                    return Promise.reject(new Error('Quantity must be a positive integer!'));
                                 },
                             },
                         ]}
                     >
-                        <Input placeholder="Quantity" type="number" step={1} />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="condition"
-                        label="Condition"
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please enter the condition!',
-                            },
-                        ]}
-                    >
-                        <Input placeholder="Condition" />
-                    </Form.Item>
+                        {(fields, { add, remove }) => (
+                            <>
+                                {fields.map(({ key, name, ...restField }) => (
+                                    <div key={key} style={{ display: 'flex', marginBottom: 8, alignItems: 'center' }}>
+                                        <Form.Item
+                                            {...restField}
+                                            name={[name, 'isbn']}
+                                            rules={[/* ... your ISBN validation rules ... */]}
+                                            style={{ flex: 1, marginRight: 8 }}
+                                        >
+                                            <Input placeholder="ISBN" />
+                                        </Form.Item>
+                                        <Form.Item
+                                            {...restField}
+                                            name={[name, 'quantity']}
+                                            rules={[/* ... your quantity validation rules ... */]}
+                                            style={{ flex: 1, marginRight: 8 }}
+                                        >
+                                            <Input placeholder="Quantity" type="number" />
+                                        </Form.Item>
+                                        <Form.Item
+                                            {...restField}
+                                            name={[name, 'condition']}
+                                            rules={[/* ... your condition validation rules ... */]}
+                                            style={{ flex: 1, marginRight: 8 }}
+                                        >
+                                            <Input placeholder="Condition" />
+                                        </Form.Item>
+                                        <MinusCircleOutlined onClick={() => remove(name)} />
+                                    </div>
+                                ))}
+                                <Form.Item>
+                                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                                        Add Book
+                                    </Button>
+                                </Form.Item>
+                            </>
+                        )}
+                    </Form.List>
 
                     {showPrice && (
                         <Form.Item
