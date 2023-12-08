@@ -68,11 +68,17 @@ async def create_sell_request(sell_req: SellRequestBase, db: db_dependency):
 
 @router.get("/sell", status_code=status.HTTP_200_OK)
 async def search_sell_requests(db: db_dependency, 
+                               book_title: Optional[str] = None,
                                seller_name: Optional[str] = None, 
                                price_limit: Optional[float] = None,
                                status: Optional[str] = "All"):
     result = db.query(models.SellingRequest.request_id).join(models.Request, models.SellingRequest.request_id == models.Request.request_id)
     
+    if book_title is not None:
+        result = result.join(models.SellExchange, models.SellingRequest.request_id == models.SellExchange.request_id)
+        result = result.join(models.BookIsbns, models.SellExchange.isbn == models.BookIsbns.isbn)
+        result = result.join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id)
+        result = result.filter(models.Book.title.ilike(f"%{book_title}%"))
     if seller_name is not None:
         result = result.join(models.User, models.Request.poster_id == models.User.user_id).filter(models.User.username == seller_name)
     if price_limit is not None:
@@ -80,7 +86,7 @@ async def search_sell_requests(db: db_dependency,
     if status != "All":
         result = result.filter(models.Request.status == status)
     
-    result = result.all()
+    result = result.distinct().all()
     sell_request_list = [item[0] for item in result]
     return {"sell_request_list": sell_request_list}
 
