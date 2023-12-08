@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, message, Table } from 'antd';
+import { Modal, Form, Input, Button, message, Table } from 'antd';
 import { UserOutlined, BookOutlined } from '@ant-design/icons';
 import { callApi } from '../utils/axios_client';
 import { useUser } from '../Usercontext';
@@ -10,6 +10,9 @@ const Owns = ({ username, token }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(null);
+
   const columns = [
     {
       title: 'ISBN',
@@ -21,10 +24,18 @@ const Owns = ({ username, token }) => {
       dataIndex: 'no_of_copies',
       key: 'no_of_copies',
     },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Button onClick={() => showEditModal(record)}>Edit</Button>
+      ),
+    },
   ];
   useEffect(() => {
     fetchBooks();
   }, [user.user_id, token]);
+
   const getUserId = async () => {
     try {
       if (!user) {
@@ -74,8 +85,6 @@ const Owns = ({ username, token }) => {
     }, [user.user_id, token]);
   };
 
-
-
   const onFinish = async (values) => {
     try {
       setLoading(true);
@@ -107,6 +116,46 @@ const Owns = ({ username, token }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const showEditModal = (book) => {
+    setSelectedBook(book);
+    setIsModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const updateButtonStyle = {
+    backgroundColor: '#1890ff', // Ant Design blue color
+    color: 'white',
+    borderColor: '#1890ff'
+  };
+
+  const handleUpdate = async (values) => {
+    try {
+      const response = await callApi(
+        'http://localhost:8000/users/own',
+        'patch',
+        {
+          user_id: user.userId,
+          isbn_list: [selectedBook.isbn],
+          no_of_copies_list: [parseInt(values.quantity)],
+        },
+        {
+          Authorization: `Bearer ${token}`,
+        }
+      );
+      if (response.status === 200) {
+        message.success('Book quantity updated successfully!');
+        fetchBooks(); // Refresh the book list
+      }
+    } catch (error) {
+      console.error(error);
+      message.error('Failed to update book quantity. Please try again.');
+    }
+    setIsModalVisible(false);
   };
 
   return (
@@ -167,6 +216,29 @@ const Owns = ({ username, token }) => {
         <h2>My Books</h2>
         <Table dataSource={books} columns={columns} />
       </div>
+
+      <Modal
+        title="Edit Book Quantity"
+        visible={isModalVisible}
+        onCancel={handleCancel}
+        footer={null}
+      >
+        <Form onFinish={handleUpdate}>
+          <Form.Item
+            name="quantity"
+            label="Quantity"
+            initialValue={selectedBook?.no_of_copies}
+            rules={[{ required: true, message: 'Please enter the new quantity!' }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" style={updateButtonStyle}>
+              Update
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
