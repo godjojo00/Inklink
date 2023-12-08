@@ -6,9 +6,7 @@ import Login_Page from './pages/login';
 import Owns from './pages/owns';
 import PostRequest from './pages/postrequest';
 import Header from './component/header';
-import RequestPage from './pages/requestpage';
 import { UserProvider } from './Usercontext';
-import PrivateRoute from './PrivateRoute';
 import ExchangePage from './pages/exchangePage';
 import SellRequestDetail from './pages/sellrequestdetail';
 
@@ -40,7 +38,6 @@ function App() {
             <Route element={<SignUp_Page onLogin={handleLogin} />} path="/signUp" />
             <Route element={<Login_Page onLogin={handleLogin} />} path="/login" />
             <Route element={<Owns />} path="/owns" />
-            <Route element={<RequestPage />} path="/request" />
             <Route element={<PostRequest />} path="/postrequest" />
             <Route element={<ExchangePage />} path='/exchange' />
             <Route path='/sell/:requestId' element={<SellRequestDetail />} />
