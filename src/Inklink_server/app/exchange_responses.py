@@ -1,5 +1,6 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status
+from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 from pydantic import BaseModel
 from typing import List
@@ -72,7 +73,11 @@ async def get_exchange_response(response_id: int, db: db_dependency):
     exchange_list = db.query(models.ProposeToExchange).filter(models.ProposeToExchange.response_id == response_id).all()
     isbn_list = [record.isbn for record in exchange_list]
     no_of_copies_list = [record.no_of_copies for record in exchange_list]
+    book_condition_list = [record.book_condition for record in exchange_list]
 
-    db_res["isbn_list"] = isbn_list
-    db_res["no_of_copies_list"] = no_of_copies_list
-    return db_res
+    db_res_dict = {c.key: getattr(db_res, c.key) for c in inspect(db_res).mapper.column_attrs}
+    db_res_dict["isbn_list"] = isbn_list
+    db_res_dict["no_of_copies_list"] = no_of_copies_list
+    db_res_dict["book_condition_list"] = book_condition_list
+
+    return db_res_dict
