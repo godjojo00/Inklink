@@ -48,7 +48,7 @@ const SellRequestDetail = () => {
   
       setModalVisible(false); // Close the purchase confirmation modal
       setPurchaseSuccessModalVisible(true); // Show the purchase success modal
-      if (purchaseResponse === 200){
+      if (purchaseResponse.status === 200){
         message.success('Purchase completed successfully!');
       }
 
