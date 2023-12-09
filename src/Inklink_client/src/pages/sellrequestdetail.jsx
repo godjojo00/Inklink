@@ -18,7 +18,6 @@ const SellRequestDetail = () => {
     const fetchRequestDetails = async () => {
       try {
         const response = await callApi(`http://localhost:8000/requests/sell/${requestId}`, 'get');
-        console.log('API response:', response);
         setRequestDetails(response.data);
       } catch (error) {
         console.error(`Failed to fetch sell request details for request_id ${requestId}:`, error);
@@ -26,32 +25,27 @@ const SellRequestDetail = () => {
         setLoading(false);
       }
     };
-//ab
+
     fetchRequestDetails();
   }, [requestId]);
 
   const handlePurchaseConfirmation = async () => {
     try {
-      // Ensure user.userId is valid
       if (!user.userId) {
         console.error('Invalid user.userId:', user.userId);
         message.error('Failed to confirm purchase. User ID is invalid.');
         return;
       }
-  
-    //   Call API to confirm purchase
-      const purchaseResponse = await callApi(`http://localhost:8000/requests/buy/${requestId}?buyer_id=${user.userId}`, 'patch');
 
-      // Call API to get seller information
+      const purchaseResponse = await callApi(`http://localhost:8000/requests/buy/${requestId}?buyer_id=${user.userId}`, 'patch');
       const sellerInfoResponse = await callApi(`http://localhost:8000/users/${requestDetails.poster_id}`, 'get');
       setSellerInfo(sellerInfoResponse.data);
-  
-      setModalVisible(false); // Close the purchase confirmation modal
-      setPurchaseSuccessModalVisible(true); // Show the purchase success modal
-      if (purchaseResponse.status === 200){
+
+      setModalVisible(false);
+      setPurchaseSuccessModalVisible(true);
+      if (purchaseResponse.status === 200) {
         message.success('Purchase completed successfully!');
       }
-
     } catch (error) {
       console.error('Failed to confirm purchase:', error);
       if (error.detail && Array.isArray(error.detail)) {
@@ -60,7 +54,6 @@ const SellRequestDetail = () => {
       message.error('Failed to confirm purchase. Please try again.');
     }
   };
-  
 
   const showModal = () => {
     setModalVisible(true);
@@ -121,12 +114,9 @@ const SellRequestDetail = () => {
         onCancel={hideModal}
         okButtonProps={{ style: { backgroundColor: '#1d4ed8' } }}
       >
-        {/* Display additional details or message in the modal */}
         <p>Are you sure you want to confirm this purchase?</p>
-        {/* Add more details if needed */}
       </Modal>
 
-      {/* Purchase Success Modal */}
       <Modal
         title="Purchase Success"
         visible={purchaseSuccessModalVisible}
@@ -134,12 +124,11 @@ const SellRequestDetail = () => {
         onCancel={handlePurchaseSuccessModalOk}
         okButtonProps={{ style: { backgroundColor: '#1d4ed8' } }}
       >
-        {/* Display order details and seller information */}
         <p>Order ID: {requestDetails?.request_id}</p>
         <p>Order Total: {requestDetails?.price}</p>
+        <p>Seller ID: {sellerInfo?.user_id}</p>
         <p>Seller Email: {sellerInfo?.email}</p>
         <p>Seller Phone: {sellerInfo?.phone_number}</p>
-        {/* Add more details if needed */}
       </Modal>
     </div>
   );

@@ -9,6 +9,7 @@ import Header from './component/header';
 import { UserProvider } from './Usercontext';
 import ExchangePage from './pages/exchangePage';
 import SellRequestDetail from './pages/sellrequestdetail';
+import RatingPage from './pages/rating';
 
 function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
@@ -41,6 +42,7 @@ function App() {
             <Route element={<PostRequest />} path="/postrequest" />
             <Route element={<ExchangePage />} path='/exchange' />
             <Route path='/sell/:requestId' element={<SellRequestDetail />} />
+            <Route element={<RatingPage />} path="/rating" />
           </Routes>
         </div>
       </UserProvider>
