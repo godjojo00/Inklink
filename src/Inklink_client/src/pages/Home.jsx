@@ -69,12 +69,13 @@ const Home = () => {
   }, []);
   
   const renderDetail = (record, type) => (
-    <Link to={`/${type}/${record.request_id}`}>
+    <Link to={`${type}/${record.request_id}`}>
       <Button className='bg-blue-500' type="primary">
         Detail
       </Button>
     </Link>
   );
+  
   const sellColumns = [
     {
       title: 'Request ID',

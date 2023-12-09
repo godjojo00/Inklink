@@ -1,3 +1,4 @@
+// 在 Header 元件中添加 "評分" 連結
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -14,6 +15,7 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
           我的藏書
         </Link>
         <Link to="/postrequest" className="mr-4">發文</Link>
+        <Link to="/rating" className="mr-4">評分</Link> {/* 新增評分連結 */}
         {isLoggedIn ? (
           <>
             <span className="mr-4">{username}</span>
