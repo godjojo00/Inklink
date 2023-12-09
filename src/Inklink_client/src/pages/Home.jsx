@@ -38,7 +38,7 @@ const Home = () => {
     const fetchExchangePosts = async () => {
       try {
         const requests = [];
-        for (let i = 1550; i >= 1400; i--) {
+        for (let i = 1; i <= 100; i++) {
           try {
             const response = await callApi(`http://localhost:8000/requests/exchange/${i}`, 'get');
             const data = response.data;
@@ -68,6 +68,11 @@ const Home = () => {
     fetchExchangePosts();
   }, []);
   
+  const renderDetailLink = (record, type) => (
+    <Link to={`/${type}/${record.request_id}`}>
+      <Button className='bg-blue-500' type="primary">Detail</Button>
+    </Link>
+  );
   const renderDetail = (record, type) => (
     <Link to={`/${type}/${record.request_id}`}>
       <Button className='bg-blue-500' type="primary">
@@ -96,12 +101,7 @@ const Home = () => {
       title: 'Quantity',
       dataIndex: 'no_of_copies_list',
       key: 'no_of_copies_list',
-      render: (noOfCopiesList) => noOfCopiesList.join(', '),
-    },
-    {
-      title: 'Detail',
-      key: 'detail',
-      render: (text, record) => renderDetail(record, 'sell'),
+      render: (text, record) => renderDetailLink(record, 'sell'),
     },
   ];
 
@@ -126,7 +126,6 @@ const Home = () => {
       title: 'Quantity',
       dataIndex: 'no_of_copies_list',
       key: 'no_of_copies_list',
-      render: (noOfCopiesList) => noOfCopiesList.join(', '),
     },
     {
       title: 'Detail',
