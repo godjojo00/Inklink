@@ -169,11 +169,17 @@ async def create_exchange_request(exchange_req: ExchangeRequestBase, db: db_depe
 
 @router.get("/exchange", status_code=status.HTTP_200_OK)
 async def search_exchange_requests(db: db_dependency, 
-                               seller_name: Optional[str] = None, 
-                               description: Optional[str] = None,
-                               status: Optional[str] = "All"):
+                                   book_title: Optional[str] = None,
+                                   seller_name: Optional[str] = None, 
+                                   description: Optional[str] = None,
+                                   status: Optional[str] = "All"):
     result = db.query(models.ExchangeRequest.request_id).join(models.Request, models.ExchangeRequest.request_id == models.Request.request_id)
     
+    if book_title is not None:
+        result = result.join(models.SellExchange, models.ExchangeRequest.request_id == models.SellExchange.request_id)
+        result = result.join(models.BookIsbns, models.SellExchange.isbn == models.BookIsbns.isbn)
+        result = result.join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id)
+        result = result.filter(models.Book.title.ilike(f"%{book_title}%"))
     if seller_name is not None:
         result = result.join(models.User, models.Request.poster_id == models.User.user_id).filter(models.User.username == seller_name)
     if description is not None:
@@ -181,7 +187,7 @@ async def search_exchange_requests(db: db_dependency,
     if status != "All":
         result = result.filter(models.Request.status == status)
     
-    result = result.all()
+    result = result.distinct().all()
     ex_request_list = [item[0] for item in result]
     return {"exchange_request_list": ex_request_list}
 
