@@ -30,7 +30,7 @@ const RatingPage = () => {
     try {
       const response = await callApi(`http://localhost:8000/ratings/${parseInt(values.request_id, 10)}?rating_user_id=${user.userId}&score=${parseInt(values.rating, 10)}`, 'post');
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         message.success('Rating submitted successfully!');
       }
     } catch (error) {
