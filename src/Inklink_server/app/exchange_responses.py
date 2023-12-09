@@ -53,7 +53,6 @@ async def create_exchange_response(exchange_res: ResponseBase, db: db_dependency
                 isbn = exchange_res.isbn_list[i],
                 no_of_copies = exchange_res.no_of_copies_list[i],
                 book_condition = exchange_res.book_condition_list[i],
-                request_id = exchange_res.request_id
             )
             db.add(new_propose_ex)
             utils.reduce_copies_owned(exchange_res.responder_id, exchange_res.isbn_list[i], exchange_res.no_of_copies_list[i], db)
