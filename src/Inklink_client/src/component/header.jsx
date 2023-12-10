@@ -11,21 +11,25 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
           </Link>
         </div>
         <div className="flex items-center space-x-4">
-          <Link to="/purchaserecord" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-            訂單記錄
-          </Link>
-          <Link to="/owns" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-            我的藏書
-          </Link>
-          <Link to="/search" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-            搜尋
-          </Link>
-          <Link to="/postrequest" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-            發文
-          </Link>
-          <Link to="/rating" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-            評分
-          </Link>
+          {isLoggedIn && (
+            <>
+              <Link to="/purchaserecord" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                訂單記錄
+              </Link>
+              <Link to="/owns" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                我的藏書
+              </Link>
+              <Link to="/search" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                搜尋
+              </Link>
+              <Link to="/postrequest" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                發文
+              </Link>
+              <Link to="/rating" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                評分
+              </Link>
+            </>
+          )}
           {isLoggedIn ? (
             <div className="flex items-center space-x-4">
               <span className="text-gray-300">{username}</span>
