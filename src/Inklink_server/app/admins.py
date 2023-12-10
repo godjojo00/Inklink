@@ -31,7 +31,9 @@ class ExchangeRequestBase(BaseModel):
 
 @router.get("/sell-analysis/books", status_code=status.HTTP_200_OK)
 async def analyze_sell_requests(db: db_dependency, 
+                                isbn: Optional[str] = None,
                                 book_title: Optional[str] = None,
+                                author_name: Optional[str] = None,
                                 seller_name: Optional[str] = None, 
                                 price_limit: Optional[float] = None,
                                 status: Optional[str] = "All", 
@@ -45,10 +47,16 @@ async def analyze_sell_requests(db: db_dependency,
         )
     result = result.join(models.SellingRequest, models.SellExchange.request_id == models.SellingRequest.request_id)
     result = result.join(models.Request, models.SellExchange.request_id == models.Request.request_id)
-    if book_title is not None:
+    if isbn is not None:
+        result = result.filter(models.SellExchange.isbn.ilike(f"{isbn}%"))
+    if (book_title is not None) or (author_name is not None):
         result = result.join(models.BookIsbns, models.SellExchange.isbn == models.BookIsbns.isbn)
-        result = result.join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id)
-        result = result.filter(models.Book.title.ilike(f"%{book_title}%"))
+        if book_title is not None:
+            result = result.join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id)
+            result = result.filter(models.Book.title.ilike(f"%{book_title}%"))
+        if author_name is not None:
+            result = result.join(models.BookAuthors, models.BookIsbns.edition_id == models.BookAuthors.edition_id)
+            result = result.filter(models.BookAuthors.author_name.ilike(f"%{author_name}%"))
     if seller_name is not None:
         result = result.join(models.User, models.Request.poster_id == models.User.user_id).filter(models.User.username == seller_name)
     if price_limit is not None:
@@ -75,7 +83,9 @@ async def analyze_sell_requests(db: db_dependency,
 
 @router.get("/exchange-analysis/books", status_code=status.HTTP_200_OK)
 async def analyze_exchange_requests(db: db_dependency, 
+                                    isbn: Optional[str] = None,
                                     book_title: Optional[str] = None,
+                                    author_name: Optional[str] = None,
                                     seller_name: Optional[str] = None, 
                                     description: Optional[str] = None,
                                     status: Optional[str] = "All", 
@@ -88,10 +98,16 @@ async def analyze_exchange_requests(db: db_dependency,
         )
     result = result.join(models.ExchangeRequest, models.SellExchange.request_id == models.ExchangeRequest.request_id)
     result = result.join(models.Request, models.SellExchange.request_id == models.Request.request_id)
-    if book_title is not None:
+    if isbn is not None:
+        result = result.filter(models.SellExchange.isbn.ilike(f"{isbn}%"))
+    if (book_title is not None) or (author_name is not None):
         result = result.join(models.BookIsbns, models.SellExchange.isbn == models.BookIsbns.isbn)
-        result = result.join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id)
-        result = result.filter(models.Book.title.ilike(f"%{book_title}%"))
+        if book_title is not None:
+            result = result.join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id)
+            result = result.filter(models.Book.title.ilike(f"%{book_title}%"))
+        if author_name is not None:
+            result = result.join(models.BookAuthors, models.BookIsbns.edition_id == models.BookAuthors.edition_id)
+            result = result.filter(models.BookAuthors.author_name.ilike(f"%{author_name}%"))
     if seller_name is not None:
         result = result.join(models.User, models.Request.poster_id == models.User.user_id).filter(models.User.username == seller_name)
     if description is not None:
