@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import func, cast, Time
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Optional
 
@@ -108,25 +108,6 @@ async def get_sell_request(request_id: int, db: db_dependency):
 
     return merged_result
 
-@router.get("/sell/books/", status_code=status.HTTP_200_OK)
-async def search_sell_requests_books(db: db_dependency, request_id_list: Optional[List[int]]=None):
-    result = db.query(
-            models.SellExchange.isbn,
-            func.avg(models.SellingRequest.price).label('avg_price'),
-            func.sum(models.SellExchange.no_of_copies).label('total_quantity')
-        )
-    result = result.join(models.SellingRequest, models.SellExchange.request_id == models.SellingRequest.request_id)
-    result = result.join(models.Request, models.SellExchange.request_id == models.Request.request_id)
-    result = result.filter(models.SellingRequest.request_id.in_(request_id_list))
-    result = result.group_by(models.SellExchange.isbn)
-    result = result.order_by(func.sum(models.SellExchange.no_of_copies).desc())
-    result = result.all()
-    result = [{
-            "isbn": row.isbn,
-            "avg_price": row.avg_price,
-            "total_quantity": row.total_quantity
-        } for row in result]
-    return result
 
 @router.patch("/buy/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def buy_sell_request(request_id: int, buyer_id: int, db:db_dependency):
