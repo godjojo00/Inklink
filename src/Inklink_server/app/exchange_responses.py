@@ -80,3 +80,22 @@ async def get_exchange_response(response_id: int, db: db_dependency):
     db_res_dict["book_condition_list"] = book_condition_list
 
     return db_res_dict
+
+@router.patch("/delete/{response_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_response(response_id: int, user_id: int, db:db_dependency):
+    db_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.response_id == response_id).first()
+    if db_ex_res is None:
+        raise HTTPException(status_code=404, detail="Exchange response not found")
+    if db_ex_res.status != "Available":
+        raise HTTPException(status_code=400, detail="Exchange response is not available")
+    if db_ex_res.responder_id != user_id:
+        raise HTTPException(status_code=400, detail="Exchange response is posted by some other user")
+    
+    try:
+        db_ex_res.status = "Deleted"
+        utils.add_copies_owned("response", db_ex_res.responder_id, db_ex_res.response_id, db)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return
