@@ -18,7 +18,7 @@ def reduce_copies_owned(user_id, isbn, reduced_no_of_copies, db):
         db_own.no_of_copies -= reduced_no_of_copies
         if db_own.no_of_copies == 0:
             db_own.delete()
-        db.commit()
+        db.flush()
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -45,7 +45,7 @@ def add_copies_owned(type, user_id, request_response__id, db):
                 db.add(db_new_own)
             else:
                 db_own.no_of_copies += record.no_of_copies
-        db.commit()
+        db.flush()
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
