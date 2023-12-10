@@ -108,7 +108,6 @@ async def get_sell_request(request_id: int, db: db_dependency):
 
     return merged_result
 
-
 @router.patch("/buy/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def buy_sell_request(request_id: int, buyer_id: int, db:db_dependency):
     db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
@@ -124,6 +123,27 @@ async def buy_sell_request(request_id: int, buyer_id: int, db:db_dependency):
         db_sell_req.buying_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         db_req.status = "Accepted"
         utils.add_copies_owned("request", buyer_id, request_id, db)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return
+
+@router.patch("/delete-sell/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_sell_request(request_id: int, deleter_id: int, db:db_dependency):
+    db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
+    db_sell_req = db.query(models.SellingRequest).filter(models.SellingRequest.request_id == request_id).first()
+    if db_sell_req is None:
+        raise HTTPException(status_code=404, detail="Selling request not found")
+    if db_req.status != "Remained":
+        raise HTTPException(status_code=400, detail="Selling request is not available")
+    if db_req.poster_id != deleter_id:
+        raise HTTPException(status_code=400, detail="Selling request is posted by some other user")
+    try:
+        db_sell_req.buyer_id = deleter_id
+        db_sell_req.buying_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db_req.status = "Deleted"
+        utils.add_copies_owned("request", db_req.poster_id, request_id, db)
         db.commit()
     except SQLAlchemyError as e:
         db.rollback()
@@ -236,6 +256,58 @@ async def confirm_exchange_response(request_id: int, response_id: int, user_id: 
             record.status = "Rejected"
             utils.add_copies_owned("response", record.responder_id, record.response_id, db)
         utils.add_copies_owned("request", db_ex_res.responder_id, db_req.request_id, db)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return
+
+@router.patch("/reject-exchange/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def reject_exchange_response(request_id: int, response_id: int, user_id: int, db:db_dependency):
+    db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
+    db_ex_req = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).first()
+    db_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.response_id == response_id).first()
+    if db_ex_req is None:
+        raise HTTPException(status_code=404, detail="Exchange request not found")
+    if db_req.status != "Remained":
+        raise HTTPException(status_code=400, detail="Exchange request is not available")
+    if db_req.poster_id != user_id:
+        raise HTTPException(status_code=400, detail="Exchange request is posted by some other user")
+    if db_ex_res is None:
+        raise HTTPException(status_code=404, detail="Exchange response not found")
+    if db_ex_res.request_id != request_id:
+        raise HTTPException(status_code=400, detail="Exchange response does not correspond to the request")
+    if db_ex_res.status != "Available":
+        raise HTTPException(status_code=400, detail="Exchange response is not available")
+    
+    try:
+        db_ex_res.status = "Rejected"
+        utils.add_copies_owned("response", db_ex_res.responder_id, db_ex_res.response_id, db)
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return
+
+@router.patch("/delete-exchange/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_exchange(request_id: int, user_id: int, db:db_dependency):
+    db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
+    db_ex_req = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).first()
+    # db_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.response_id == response_id).first()
+    if db_ex_req is None:
+        raise HTTPException(status_code=404, detail="Exchange request not found")
+    if db_req.status != "Remained":
+        raise HTTPException(status_code=400, detail="Exchange request is not available")
+    if db_req.poster_id != user_id:
+        raise HTTPException(status_code=400, detail="Exchange request is posted by some other user")
+    
+    try:
+        db_req.status = "Deleted"
+        db_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == request_id).all()
+        for record in db_ex_res:
+            record.status = "Rejected" # TODO: 
+            utils.add_copies_owned("response", record.responder_id, record.response_id, db)
+        utils.add_copies_owned("request", db_req.poster_id, db_req.request_id, db)
         db.commit()
     except SQLAlchemyError as e:
         db.rollback()
