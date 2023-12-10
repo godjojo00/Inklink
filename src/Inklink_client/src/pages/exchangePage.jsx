@@ -51,10 +51,7 @@ const ExchangePage = () => {
 
     const handleConfirmExchange = async (responseId) => {
         try {
-            const response = await callApi(`http://localhost:8000/requests/confirm-exchange/${requestId}`, 'patch', {
-                response_id: responseId,
-                user_id: user.userId,
-            });
+            const response = await callApi(`http://localhost:8000/requests/confirm-exchange/${parseInt(requestId, 10)}?response_id=${responseId}&user_id=${user.userId}`, 'patch');
 
             message.success('Exchange confirmed successfully!');
             // 可以根據需要更新頁面狀態或執行其他操作
@@ -134,6 +131,7 @@ const ExchangePage = () => {
                 <div>
                     <h2 className="text-2xl font-bold mb-4">Available Responses</h2>
                     <Table
+                        key={responses.length}
                         dataSource={responses.filter((response) => response.status === 'Available')}
                         columns={columns}
                         rowKey="response_id" // 指定一个唯一的字段作为 key
