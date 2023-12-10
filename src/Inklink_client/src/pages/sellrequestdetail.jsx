@@ -207,6 +207,16 @@ const SellRequestDetail = () => {
         <p>Seller ID: {sellerInfo?.user_id}</p>
         <p>Seller Email: {sellerInfo?.email}</p>
         <p>Seller Phone: {sellerInfo?.phone_number}</p>
+        <p>Book Details:</p>
+        <ul>
+          {requestDetails?.bookDetailsList.map((book) => (
+            <li key={book.isbn}>
+              <strong>Title:</strong> {book.title} <br />
+              <strong>Author:</strong> {book.author_list.join(', ')} <br />
+              <strong>Edition:</strong> {book.edition_name} <br />
+            </li>
+          ))}
+        </ul>
       </Modal>
     </div>
   );

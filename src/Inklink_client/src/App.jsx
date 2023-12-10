@@ -11,6 +11,7 @@ import ExchangePage from './pages/exchangePage';
 import SellRequestDetail from './pages/sellrequestdetail';
 import RatingPage from './pages/rating';
 import SearchPage from './pages/search'; 
+import PurchaseRecord from './pages/purchaseRecord';
 
 function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
@@ -45,6 +46,7 @@ function App() {
             <Route path='/sell/:requestId' element={<SellRequestDetail />} />
             <Route element={<RatingPage />} path="/rating" />
             <Route element={<SearchPage />} path="/search" />
+            <Route element={<PurchaseRecord />} path="/purchaserecord" />
           </Routes>
         </div>
       </UserProvider>

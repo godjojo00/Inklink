@@ -1,32 +1,47 @@
-// 在 Header 元件中添加 "評分" 連結
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 const Header = ({ isLoggedIn, username, onLogout }) => {
   return (
-    <div className="flex justify-between items-center bg-gray-800 text-white p-4">
-      <div className="flex items-center">
-        <Link to="/" className="text-2xl font-bold mr-4">
-          Inklink
-        </Link>
-      </div>
-      <div className="flex items-center">
-        <Link to="/owns" className="mr-4">
-          我的藏書
-        </Link>
-        <Link to="/search" className="mr-4">搜尋</Link> 
-        <Link to="/postrequest" className="mr-4">發文</Link>
-        <Link to="/rating" className="mr-4">評分</Link> {/* 新增評分連結 */}
-        {isLoggedIn ? (
-          <>
-            <span className="mr-4">{username}</span>
-            <button onClick={onLogout} className="text-blue-600 hover:underline">
-              Logout
-            </button>
-          </>
-        ) : (
-          <Link to="/login">登入</Link>
-        )}
+    <div className="bg-gray-800 text-white p-4">
+      <div className="container mx-auto flex justify-between items-center">
+        <div className="flex items-center">
+          <Link to="/" className="text-2xl font-bold mr-4">
+            InkLink
+          </Link>
+        </div>
+        <div className="flex items-center space-x-4">
+          <Link to="/purchaserecord" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            訂單記錄
+          </Link>
+          <Link to="/owns" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            我的藏書
+          </Link>
+          <Link to="/search" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            搜尋
+          </Link>
+          <Link to="/postrequest" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            發文
+          </Link>
+          <Link to="/rating" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            評分
+          </Link>
+          {isLoggedIn ? (
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-300">{username}</span>
+              <button
+                onClick={onLogout}
+                className="text-blue-600 hover:text-blue-400 focus:outline-none"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+              登入
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );
