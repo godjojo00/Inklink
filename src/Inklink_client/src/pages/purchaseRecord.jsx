@@ -9,6 +9,7 @@ const PurchaseRecord = () => {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [purchaseDetails, setPurchaseDetails] = useState(null);
+  const [sellerInfo, setSellerInfo] = useState(null); // 添加了卖家信息的状态
   const { user } = useUser();
 
   useEffect(() => {
@@ -71,9 +72,23 @@ const PurchaseRecord = () => {
     fetchPurchaseRecords();
   }, [user.userId]);
 
-  const showModal = (purchaseDetails) => {
+  const fetchSellerInfo = async (posterId) => {
+    try {
+      const sellerInfoResponse = await callApi(`http://localhost:8000/users/${posterId}`, 'get');
+      setSellerInfo(sellerInfoResponse.data);
+    } catch (error) {
+      console.error(`Failed to fetch seller details for poster ID ${posterId}:`, error);
+    }
+  };
+
+  const showModal = async (purchaseDetails) => {
     setPurchaseDetails(purchaseDetails);
     setModalVisible(true);
+
+    // Fetch seller information
+    if (purchaseDetails && purchaseDetails.poster_id) {
+      await fetchSellerInfo(purchaseDetails.poster_id);
+    }
   };
 
   const hideModal = () => {
@@ -111,7 +126,7 @@ const PurchaseRecord = () => {
       key: 'buying_time',
     },
     {
-      title: 'Action',
+      title: 'Seller Info',
       key: 'action',
       render: (text, record) => (
         <Button onClick={() => showModal(record)}>View Details</Button>
@@ -146,6 +161,9 @@ const PurchaseRecord = () => {
       >
         <p>Order ID: {purchaseDetails?.request_id}</p>
         <p>Order Total: {purchaseDetails?.price}</p>
+        <p>Seller ID: {sellerInfo?.user_id}</p>
+        <p>Seller Email: {sellerInfo?.email}</p>
+        <p>Seller Phone: {sellerInfo?.phone_number}</p>
       </Modal>
     </div>
   );
