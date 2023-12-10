@@ -11,6 +11,12 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
           </Link>
         </div>
         <div className="flex items-center space-x-4">
+          {/* Always show the "Search" link */}
+          <Link to="/search" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            搜尋
+          </Link>
+
+          {/* Show additional links if the user is logged in */}
           {isLoggedIn && (
             <>
               <Link to="/purchaserecord" className="hover:bg-gray-700 px-3 py-2 rounded-md">
@@ -18,9 +24,6 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
               </Link>
               <Link to="/owns" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                 我的藏書
-              </Link>
-              <Link to="/search" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-                搜尋
               </Link>
               <Link to="/postrequest" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                 發文
@@ -30,6 +33,8 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
               </Link>
             </>
           )}
+
+          {/* Show login or user info based on login status */}
           {isLoggedIn ? (
             <div className="flex items-center space-x-4">
               <span className="text-gray-300">{username}</span>
