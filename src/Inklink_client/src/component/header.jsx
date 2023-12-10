@@ -14,6 +14,7 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
         <Link to="/owns" className="mr-4">
           我的藏書
         </Link>
+        <Link to="/search" className="mr-4">搜尋</Link> 
         <Link to="/postrequest" className="mr-4">發文</Link>
         <Link to="/rating" className="mr-4">評分</Link> {/* 新增評分連結 */}
         {isLoggedIn ? (
