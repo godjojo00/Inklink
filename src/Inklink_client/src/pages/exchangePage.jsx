@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { callApi } from '../utils/axios_client';
-import { Table, Form, Input, Button, message } from 'antd';
+import { Table, Form, Input, Button, Modal, message } from 'antd';
 import { useUser } from '../Usercontext';
 
 const ExchangePage = () => {
@@ -54,6 +54,7 @@ const ExchangePage = () => {
             const response = await callApi(`http://localhost:8000/requests/confirm-exchange/${parseInt(requestId, 10)}?response_id=${responseId}&user_id=${user.userId}`, 'patch');
 
             message.success('Exchange confirmed successfully!');
+            setExchangePost({ ...exchangePost, status: 'Accepted' });
             // 可以根據需要更新頁面狀態或執行其他操作
         } catch (error) {
             console.error('Failed to confirm exchange:', error);
@@ -74,6 +75,11 @@ const ExchangePage = () => {
             key: 'no_of_copies_list',
             render: (noOfCopiesList) => (noOfCopiesList ? noOfCopiesList.join(', ') : ''),
         },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+          },
     ];
 
     const availableResponseColumns = [
@@ -88,13 +94,15 @@ const ExchangePage = () => {
             title: 'Action',
             key: 'action',
             render: (text, record) => (
-                <Button
-                    className='bg-blue-500'
-                    type="primary"
-                    onClick={() => handleConfirmExchange(record.response_id)}
-                >
-                    Confirm Exchange
-                </Button>
+                user && exchangePost && user.userId === exchangePost.poster_id ? (
+                    <Button
+                        className='bg-blue-500'
+                        type="primary"
+                        onClick={() => handleConfirmExchange(record.response_id)}
+                    >
+                        Confirm Exchange
+                    </Button>
+                ) : null
             ),
         },
     ];
@@ -127,6 +135,28 @@ const ExchangePage = () => {
         }
     };
 
+    const handleDeleteExchangeRequest = async () => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this request?',
+            content: 'This action cannot be undone.',
+            okText: 'Yes, delete it',
+            okType: 'danger',
+            cancelText: 'No, cancel',
+            onOk: async () => {
+                try {
+                    const response = await callApi(`http://localhost:8000/requests/delete-exchange/${requestId}?user_id=${user.userId}`, 'patch');
+                    if (response.status === 204) {
+                        message.success('Exchange request deleted successfully!');
+                        setExchangePost({ ...exchangePost, status: 'Deleted' });
+                    }
+                } catch (error) {
+                    console.error('Failed to delete exchange request:', error);
+                    message.error('Failed to delete the request. Please try again.');
+                }
+            },
+        });
+    };    
+
     return (
         <div className="container mx-auto mt-8">
             {exchangePost && (
@@ -137,7 +167,7 @@ const ExchangePage = () => {
                 </div>
             )}
 
-            {responses.length > 0 && (
+            {responses.length > 0 && exchangePost && exchangePost.status === 'Remained' && (
                 <div>
                     <h2 className="text-2xl font-bold mb-4">Available Responses</h2>
                     <Table
@@ -160,22 +190,34 @@ const ExchangePage = () => {
                 </div>
             )}
 
-            <Form form={form} onFinish={onFinish} className="mt-4">
-                <Form.Item name="isbn_list" label="ISBN List">
-                    <Input placeholder="Enter ISBNs separated by commas" />
-                </Form.Item>
-                <Form.Item name="no_of_copies_list" label="Number of Copies List">
-                    <Input placeholder="Enter number of copies separated by commas" />
-                </Form.Item>
-                <Form.Item name="book_condition_list" label="Book Condition List">
-                    <Input placeholder="Enter book conditions separated by commas" />
-                </Form.Item>
-                <Form.Item>
-                    <Button className="bg-blue-600" type="primary" htmlType="submit">
-                        Submit Response
-                    </Button>
-                </Form.Item>
-            </Form>
+            {exchangePost && user && exchangePost.poster_id !== user.userId && (
+                <Form form={form} onFinish={onFinish} className="mt-4">
+                    <Form.Item name="isbn_list" label="ISBN List">
+                        <Input placeholder="Enter ISBNs separated by commas" />
+                    </Form.Item>
+                    <Form.Item name="no_of_copies_list" label="Number of Copies List">
+                        <Input placeholder="Enter number of copies separated by commas" />
+                    </Form.Item>
+                    <Form.Item name="book_condition_list" label="Book Condition List">
+                        <Input placeholder="Enter book conditions separated by commas" />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button className="bg-blue-600" type="primary" htmlType="submit">
+                            Submit Response
+                        </Button>
+                    </Form.Item>
+                </Form>
+            )}
+
+            {user && exchangePost && user.userId === exchangePost.poster_id && exchangePost.status === 'Remained' && (
+                <Button 
+                    className='bg-red-500 text-white' 
+                    type="danger" 
+                    onClick={handleDeleteExchangeRequest}
+                >
+                    Delete Request
+                </Button>
+            )}
         </div>
     );
 };

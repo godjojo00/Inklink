@@ -70,6 +70,7 @@ const SellRequestDetail = () => {
       setPurchaseSuccessModalVisible(true);
       if (purchaseResponse.status === 201) {
         message.success('Purchase completed successfully!');
+        setRequestDetails({ ...requestDetails, status: 'Accepted' });
       }
     } catch (error) {
       console.error('Failed to confirm purchase:', error);
@@ -125,16 +126,6 @@ const SellRequestDetail = () => {
 
   const columns = [
     {
-      title: 'Request ID',
-      dataIndex: 'request_id',
-      key: 'request_id',
-    },
-    {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
-    },
-    {
       title: 'Book Title',
       dataIndex: 'bookDetailsList',
       key: 'bookTitle',
@@ -188,11 +179,6 @@ const SellRequestDetail = () => {
       key: 'no_of_copies_list',
       render: (no_of_copies_list) => (no_of_copies_list ? no_of_copies_list.join(', ') : ''),
     },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-    },    
     // Add separate columns for each book detail
   ];
   
@@ -208,6 +194,9 @@ const SellRequestDetail = () => {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Sell Request Details</h2>
+      <p><strong>Request ID:</strong> {requestDetails?.request_id}</p>
+      <p><strong>Price:</strong> {requestDetails?.price}</p>
+      <p><strong>Status:</strong> {requestDetails?.status}</p>
       <Table dataSource={[requestDetails]} columns={columns} rowKey="request_id" />
       {user.userId !== requestDetails.poster_id && requestDetails.status === 'Remained' && (
         <Button className='bg-blue-500' type="primary" onClick={showModal}>
@@ -244,7 +233,7 @@ const SellRequestDetail = () => {
       >
         <p>Order ID: {requestDetails?.request_id}</p>
         <p>Order Total: {requestDetails?.price}</p>
-        <p>Seller ID: {sellerInfo?.user_id}</p>
+        <p>Seller Username: {sellerInfo?.username}</p>
         <p>Seller Email: {sellerInfo?.email}</p>
         <p>Seller Phone: {sellerInfo?.phone_number}</p>
         <p>Book Details:</p>
@@ -253,7 +242,7 @@ const SellRequestDetail = () => {
             <li key={book.isbn}>
               <strong>Title:</strong> {book.title} <br />
               <strong>Author:</strong> {book.author_list.join(', ')} <br />
-              <strong>Edition:</strong> {book.edition_name} <br />
+              <strong>Edition:</strong> {book.edition_name || 'N/A'} <br />
             </li>
           ))}
         </ul>
