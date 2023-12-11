@@ -20,7 +20,10 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
           {isLoggedIn && (
             <>
               <Link to="/purchaserecord" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-                訂單記錄
+                Purchase Record
+              </Link>
+              <Link to="/myRequests" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                My Requests
               </Link>
               <Link to="/owns" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                 我的藏書

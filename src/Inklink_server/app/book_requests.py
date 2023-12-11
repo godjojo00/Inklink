@@ -71,6 +71,7 @@ async def search_sell_requests(db: db_dependency,
                                book_title: Optional[str] = None,
                                seller_name: Optional[str] = None, 
                                price_limit: Optional[float] = None,
+                               buyer_id : Optional[int] = None,
                                status: Optional[str] = "All"):
     result = db.query(models.SellingRequest.request_id).join(models.Request, models.SellingRequest.request_id == models.Request.request_id)
     
@@ -83,6 +84,8 @@ async def search_sell_requests(db: db_dependency,
         result = result.join(models.User, models.Request.poster_id == models.User.user_id).filter(models.User.username == seller_name)
     if price_limit is not None:
         result = result.filter(models.SellingRequest.price <= price_limit)
+    if buyer_id is not None:
+        result = result.filter(models.SellingRequest.buyer_id == buyer_id)
     if status != "All":
         result = result.filter(models.Request.status == status)
     
