@@ -108,30 +108,38 @@ const ExchangePage = () => {
           },
     ];
 
-    const availableResponseColumns = [
-        {
-            title: 'ISBN',
-            dataIndex: 'isbn_list',
-            key: 'isbn_list',
-            render: (isbnList) => (isbnList ? isbnList.join(', ') : ''),
-        },
-        {
-            title: 'Quantity',
-            dataIndex: 'no_of_copies_list',
-            key: 'no_of_copies_list',
-            render: (noOfCopiesList) => (noOfCopiesList ? noOfCopiesList.join(', ') : ''),
-        },
-        {
-            title: 'Book Condition',
-            dataIndex: 'book_condition_list',
-            key: 'book_condition_list',
-            render: (bookConditionList) => (bookConditionList ? bookConditionList.join(', ') : ''),
-        },
-        {
-            title: 'Action',
-            key: 'action',
-            render: (text, record) => (
-                user && exchangePost && user.userId === exchangePost.poster_id ? (
+    const getAvailableResponseColumns = (user, exchangePost, handleConfirmExchange) => {
+        let columns = [
+            {
+                title: 'Responder',
+                dataIndex: 'username',
+                key: 'username',
+            },
+            {
+                title: 'ISBN List',
+                dataIndex: 'isbn_list',
+                key: 'isbn_list',
+                render: (isbnList) => (isbnList ? isbnList.join(', ') : ''),
+            },
+            {
+                title: 'Quantity List',
+                dataIndex: 'no_of_copies_list',
+                key: 'no_of_copies_list',
+                render: (noOfCopiesList) => (noOfCopiesList ? noOfCopiesList.join(', ') : ''),
+            },
+            {
+                title: 'Book Condition List',
+                dataIndex: 'book_condition_list',
+                key: 'book_condition_list',
+                render: (bookConditionList) => (bookConditionList ? bookConditionList.join(', ') : ''),
+            },
+        ];
+    
+        if (user && exchangePost && user.userId === exchangePost.poster_id) {
+            columns.push({
+                title: 'Action',
+                key: 'action',
+                render: (text, record) => (
                     <Button
                         className='bg-blue-500'
                         type="primary"
@@ -139,10 +147,12 @@ const ExchangePage = () => {
                     >
                         Confirm Exchange
                     </Button>
-                ) : null
-            ),
-        },
-    ];
+                ),
+            });
+        }
+    
+        return columns;
+    };
 
     const fetchResponseDetails = async (responseId) => {
         try {
@@ -224,7 +234,7 @@ const ExchangePage = () => {
                     <Table
                         key={responses.length}
                         dataSource={responses.filter((response) => response.status === 'Available')}
-                        columns={availableResponseColumns}
+                        columns={getAvailableResponseColumns(user, exchangePost, handleConfirmExchange)}
                         rowKey="response_id" // 指定一个唯一的字段作为 key
                     />
                 </div>
