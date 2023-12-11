@@ -104,6 +104,7 @@ const SellRequestDetail = () => {
           const response = await callApi(`http://localhost:8000/requests/delete-sell/${requestId}?deleter_id=${user.userId}`, 'patch');
           if (response.status === 204) {
             message.success('Request deleted successfully!');
+            setRequestDetails({ ...requestDetails, status: 'Deleted' });
           }
         } catch (error) {
           console.error('Failed to delete sell request:', error);
@@ -187,8 +188,12 @@ const SellRequestDetail = () => {
       key: 'no_of_copies_list',
       render: (no_of_copies_list) => (no_of_copies_list ? no_of_copies_list.join(', ') : ''),
     },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+    },    
     // Add separate columns for each book detail
-
   ];
   
   // 然後在Table中將`bookDetailsList`排除在外:
@@ -204,7 +209,7 @@ const SellRequestDetail = () => {
     <div>
       <h2 className="text-2xl font-bold mb-4">Sell Request Details</h2>
       <Table dataSource={[requestDetails]} columns={columns} rowKey="request_id" />
-      {user.userId !== requestDetails.poster_id && (
+      {user.userId !== requestDetails.poster_id && requestDetails.status === 'Remained' && (
         <Button className='bg-blue-500' type="primary" onClick={showModal}>
           Confirm Purchase
         </Button>
