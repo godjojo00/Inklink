@@ -6,9 +6,9 @@ import { useUser } from '../Usercontext';
 
 const ExchangePage = () => {
     const [exchangePost, setExchangePost] = useState(null);
+    const [bookDetails, setBookDetails] = useState([]);
     const [responses, setResponses] = useState([]);
     const [selectedResponse, setSelectedResponse] = useState(null);
-    const [commentText, setCommentText] = useState('');
     const [form] = Form.useForm();
     const { requestId } = useParams();
     const { user } = useUser();
@@ -17,7 +17,20 @@ const ExchangePage = () => {
         const fetchExchangePost = async () => {
             try {
                 const response = await callApi(`http://localhost:8000/requests/exchange/${requestId}`, 'get');
-                setExchangePost(response.data);
+                const exchangeData = response.data;
+
+                const bookDetailsPromises = exchangeData.isbn_list.map(async (isbn) => {
+                    try {
+                        const bookDetailsResponse = await callApi(`http://localhost:8000/books/book?isbn=${isbn}`, 'get');
+                        return bookDetailsResponse.data;
+                    } catch (error) {
+                        return { isbn, title: 'N/A', authors: 'N/A', edition: 'N/A' };
+                    }
+                });
+
+                const bookDetailsList = await Promise.all(bookDetailsPromises);
+                const transformedBookDetails = transformBookDetails(bookDetailsList, exchangeData.no_of_copies_list, exchangeData.book_condition_list);
+                setExchangePost({ ...exchangeData, bookDetailsList: transformedBookDetails });
             } catch (error) {
                 console.error(`Failed to fetch exchange post with request_id ${requestId}:`, error);
             }
@@ -65,25 +78,49 @@ const ExchangePage = () => {
     const exchangePostColumns = [
         {
             title: 'ISBN',
+            dataIndex: 'isbn',
+            key: 'isbn',
+          },
+          {
+            title: 'Book Title',
+            dataIndex: 'title',
+            key: 'title',
+          },
+          {
+            title: 'Author',
+            dataIndex: 'authors',
+            key: 'authors',
+          },
+          {
+            title: 'Edition',
+            dataIndex: 'edition',
+            key: 'edition',
+          },
+          {
+            title: 'Quantity',
+            dataIndex: 'quantity',
+            key: 'quantity',
+          },
+          {
+            title: 'Book Condition',
+            dataIndex: 'bookCondition',
+            key: 'bookCondition',
+          },
+    ];
+
+    const availableResponseColumns = [
+        {
+            title: 'ISBN',
             dataIndex: 'isbn_list',
             key: 'isbn_list',
             render: (isbnList) => (isbnList ? isbnList.join(', ') : ''),
         },
         {
-            title: 'Number of Copies',
+            title: 'Quantity',
             dataIndex: 'no_of_copies_list',
             key: 'no_of_copies_list',
             render: (noOfCopiesList) => (noOfCopiesList ? noOfCopiesList.join(', ') : ''),
         },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-          },
-    ];
-
-    const availableResponseColumns = [
-        ...exchangePostColumns,
         {
             title: 'Book Condition',
             dataIndex: 'book_condition_list',
@@ -155,15 +192,29 @@ const ExchangePage = () => {
                 }
             },
         });
-    };    
+    };
+
+    const transformBookDetails = (bookDetailsList, noOfCopiesList, bookConditionList) => {
+        return bookDetailsList.map((book, index) => ({
+          key: book.isbn,
+          title: book.title || 'N/A',
+          authors: book.author_list ? book.author_list.join(', ') : 'N/A',
+          edition: book.edition_name || 'N/A',
+          isbn: book.isbn,
+          quantity: noOfCopiesList[index],
+          bookCondition: bookConditionList[index], 
+        }));
+    };
 
     return (
         <div className="container mx-auto mt-8">
             {exchangePost && (
                 <div className="mb-8">
-                    <h2 className="text-2xl font-bold mb-4">Exchange Post Details</h2>
-                    <p>Wishlist Description: {exchangePost.wishlist_description}</p>
-                    <Table dataSource={[exchangePost]} columns={exchangePostColumns} rowKey="request_id" />
+                    <h2 className="text-2xl font-bold mb-4">Exchange Request Details</h2>
+                    <p><strong>Request ID:</strong> {exchangePost?.request_id}</p>
+                    <p><strong>Wishlist Description:</strong> {exchangePost.wishlist_description}</p>
+                    <p><strong>Status:</strong> {exchangePost?.status}</p>
+                    <Table dataSource={exchangePost.bookDetailsList} columns={exchangePostColumns} rowKey="isbn" />
                 </div>
             )}
 
