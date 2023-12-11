@@ -105,9 +105,11 @@ async def get_sell_request(request_id: int, db: db_dependency):
     sells_list = db.query(models.SellExchange).filter(models.SellExchange.request_id == request_id).all()
     isbn_list = [record.isbn for record in sells_list]
     no_of_copies_list = [record.no_of_copies for record in sells_list]
+    book_condition_list = [record.book_condition for record in sells_list]
 
     merged_result["isbn_list"] = isbn_list
     merged_result["no_of_copies_list"] = no_of_copies_list
+    merged_result["book_condition_list"] = book_condition_list
 
     return merged_result
 
@@ -228,9 +230,12 @@ async def get_exchange_request(request_id: int, db: db_dependency):
     exchange_list = db.query(models.SellExchange).filter(models.SellExchange.request_id == request_id).all()
     isbn_list = [record.isbn for record in exchange_list]
     no_of_copies_list = [record.no_of_copies for record in exchange_list]
+    book_condition_list = [record.book_condition for record in exchange_list]
 
     merged_result["isbn_list"] = isbn_list
     merged_result["no_of_copies_list"] = no_of_copies_list
+    merged_result["book_condition_list"] = book_condition_list
+
     return merged_result
     
 @router.patch("/confirm-exchange/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
