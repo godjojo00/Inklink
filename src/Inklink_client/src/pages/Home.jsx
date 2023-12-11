@@ -75,18 +75,23 @@ const Home = () => {
       </Button>
     </Link>
   );
-  
-  const sellColumns = [
+
+  const commonColumns = [
     {
       title: 'Request ID',
       dataIndex: 'request_id',
       key: 'request_id',
     },
     {
+      title: 'Posted By',
+      dataIndex: 'seller_name',
+      key: 'seller_name',
+    },
+    {
       title: 'ISBN List',
       dataIndex: 'isbn_list',
       key: 'isbn_list',
-      render: (isbnList) => isbnList.join(', '), // 将数组转换为逗号分隔的字符串
+      render: (isbnList) => isbnList.join(', '),
     },
     {
       title: 'Quantity List',
@@ -94,6 +99,10 @@ const Home = () => {
       key: 'no_of_copies_list',
       render: (noOfCopiesList) => noOfCopiesList.join(', '),
     },
+  ]
+  
+  const sellColumns = [
+    ...commonColumns,
     {
       title: 'Price',
       dataIndex: 'price',
@@ -107,23 +116,7 @@ const Home = () => {
   ];
 
   const exchangeColumns = [
-    {
-      title: 'Request ID',
-      dataIndex: 'request_id',
-      key: 'request_id',
-    },
-    {
-      title: 'ISBN List',
-      dataIndex: 'isbn_list',
-      key: 'isbn_list',
-      render: (isbnList) => isbnList.join(', '), // 将数组转换为逗号分隔的字符串
-    },
-    {
-      title: 'Quantity List',
-      dataIndex: 'no_of_copies_list',
-      key: 'no_of_copies_list',
-      render: (noOfCopiesList) => noOfCopiesList.join(', '),
-    },
+    ...commonColumns,
     {
       title: 'Wishlist',
       dataIndex: 'wishlist_description',

@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import aliased
 from typing import List, Optional
 
 from database import db_dependency
@@ -26,6 +27,9 @@ class SellRequestBase(BaseModel):
 class ExchangeRequestBase(BaseModel):
     request_info: RequestBase
     wishlist_description: str
+
+seller_alias = aliased(models.User, name='seller')
+buyer_alias = aliased(models.User, name='buyer')
 
 @router.post("/sell", status_code=status.HTTP_201_CREATED)
 async def create_sell_request(sell_req: SellRequestBase, db: db_dependency):
@@ -95,11 +99,15 @@ async def search_sell_requests(db: db_dependency,
 
 @router.get("/sell/{request_id}", status_code=status.HTTP_200_OK)
 async def get_sell_request(request_id: int, db: db_dependency):
-    result = db.query(models.SellingRequest, models.Request).join(models.Request, models.SellingRequest.request_id == models.Request.request_id).filter(models.SellingRequest.request_id == request_id).first()
+    result = db.query(models.SellingRequest, models.Request, seller_alias.username.label('seller_username'), buyer_alias.username.label('buyer_username'))\
+                .join(models.Request, models.SellingRequest.request_id == models.Request.request_id)\
+                .join(seller_alias, models.Request.poster_id == seller_alias.user_id)\
+                .outerjoin(buyer_alias, models.SellingRequest.buyer_id == buyer_alias.user_id)\
+                .filter(models.SellingRequest.request_id == request_id).first()
     if result is None:
         raise HTTPException(status_code=404, detail="Request id not found in selling requests")
     
-    selling_request, request = result
+    selling_request, request, seller_name, buyer_name = result
     merged_result = {**selling_request.__dict__, **request.__dict__}
     merged_result.pop('_sa_instance_state', None)
     sells_list = db.query(models.SellExchange).filter(models.SellExchange.request_id == request_id).all()
@@ -107,6 +115,8 @@ async def get_sell_request(request_id: int, db: db_dependency):
     no_of_copies_list = [record.no_of_copies for record in sells_list]
     book_condition_list = [record.book_condition for record in sells_list]
 
+    merged_result["seller_name"] = seller_name
+    merged_result["buyer_name"] = buyer_name
     merged_result["isbn_list"] = isbn_list
     merged_result["no_of_copies_list"] = no_of_copies_list
     merged_result["book_condition_list"] = book_condition_list
@@ -219,11 +229,14 @@ async def search_exchange_requests(db: db_dependency,
 
 @router.get("/exchange/{request_id}", status_code=status.HTTP_200_OK)
 async def get_exchange_request(request_id: int, db: db_dependency):
-    result = db.query(models.ExchangeRequest, models.Request).join(models.Request, models.ExchangeRequest.request_id == models.Request.request_id).filter(models.ExchangeRequest.request_id == request_id).first()
+    result = db.query(models.ExchangeRequest, models.Request, seller_alias.username.label('seller_username'))\
+                .join(models.Request, models.ExchangeRequest.request_id == models.Request.request_id)\
+                .join(seller_alias, models.Request.poster_id == seller_alias.user_id)\
+                .filter(models.ExchangeRequest.request_id == request_id).first()
     if result is None:
         raise HTTPException(status_code=404, detail="Request id not found in exchange requests")
     
-    exchange_request, request = result
+    exchange_request, request, seller_name = result
     merged_result = {**exchange_request.__dict__, **request.__dict__}
     merged_result.pop('_sa_instance_state', None)
     
@@ -232,6 +245,7 @@ async def get_exchange_request(request_id: int, db: db_dependency):
     no_of_copies_list = [record.no_of_copies for record in exchange_list]
     book_condition_list = [record.book_condition for record in exchange_list]
 
+    merged_result["seller_name"] = seller_name
     merged_result["isbn_list"] = isbn_list
     merged_result["no_of_copies_list"] = no_of_copies_list
     merged_result["book_condition_list"] = book_condition_list
