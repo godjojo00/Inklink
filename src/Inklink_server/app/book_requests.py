@@ -72,7 +72,7 @@ async def search_sell_requests(db: db_dependency,
                                seller_name: Optional[str] = None, 
                                price_limit: Optional[float] = None,
                                buyer_id : Optional[int] = None,
-                               status: Optional[str] = "All"):
+                               status: Optional[str] = "Remained"):
     result = db.query(models.SellingRequest.request_id).join(models.Request, models.SellingRequest.request_id == models.Request.request_id)
     
     if book_title is not None:
@@ -196,7 +196,7 @@ async def search_exchange_requests(db: db_dependency,
                                    book_title: Optional[str] = None,
                                    seller_name: Optional[str] = None, 
                                    description: Optional[str] = None,
-                                   status: Optional[str] = "All"):
+                                   status: Optional[str] = "Remained"):
     result = db.query(models.ExchangeRequest.request_id).join(models.Request, models.ExchangeRequest.request_id == models.Request.request_id)
     
     if book_title is not None:

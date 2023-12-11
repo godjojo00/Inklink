@@ -92,6 +92,28 @@ const SellRequestDetail = () => {
     setPurchaseSuccessModalVisible(false);
   };
 
+  const handleDeleteRequest = async () => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this request?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes, delete it',
+      okType: 'danger',
+      cancelText: 'No, cancel',
+      onOk: async () => {
+        try {
+          const response = await callApi(`http://localhost:8000/requests/delete-sell/${requestId}?deleter_id=${user.userId}`, 'patch');
+          if (response.status === 204) {
+            message.success('Request deleted successfully!');
+          }
+        } catch (error) {
+          console.error('Failed to delete sell request:', error);
+          message.error('Failed to delete the request. Please try again.');
+        }
+      },
+    });
+  };
+  
+
   if (loading) {
     return <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
   }
@@ -163,6 +185,7 @@ const SellRequestDetail = () => {
       title: 'Quantity',
       dataIndex: 'no_of_copies_list',
       key: 'no_of_copies_list',
+      render: (no_of_copies_list) => (no_of_copies_list ? no_of_copies_list.join(', ') : ''),
     },
     // Add separate columns for each book detail
 
@@ -181,9 +204,21 @@ const SellRequestDetail = () => {
     <div>
       <h2 className="text-2xl font-bold mb-4">Sell Request Details</h2>
       <Table dataSource={[requestDetails]} columns={columns} rowKey="request_id" />
-      <Button className='bg-blue-500' type="primary" onClick={showModal}>
-        Confirm Purchase
-      </Button>
+      {user.userId !== requestDetails.poster_id && (
+        <Button className='bg-blue-500' type="primary" onClick={showModal}>
+          Confirm Purchase
+        </Button>
+      )}
+      
+      {user.userId === requestDetails.poster_id && requestDetails.status === 'Remained' && (
+        <Button 
+          className='bg-red-500 text-white' 
+          type="danger" 
+          onClick={handleDeleteRequest}
+        >
+          Delete Request
+        </Button>
+      )}
 
       <Modal
         title={`Confirm Purchase - Request ID: ${requestDetails.request_id}`}
