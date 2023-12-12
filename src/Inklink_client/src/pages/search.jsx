@@ -198,7 +198,7 @@ const ExchangeSearch = () => {
       if (priceLimit) {
         params.append('price_limit', priceLimit);
       }
-      params.append('status', 'All');
+      params.append('status', 'Remained');
       const queryString = params.toString();
       const apiUrl = `http://localhost:8000/requests/sell?${queryString}`;
 

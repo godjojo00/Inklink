@@ -35,13 +35,8 @@ const SellRequestDetail = () => {
     
         const bookDetailsList = await Promise.all(bookDetailsPromises);
     
-        // Combine book details with request details
-        const detailedRequestDetails = {
-          ...requestDetailsData,
-          bookDetailsList,
-        };
-    
-        setRequestDetails(detailedRequestDetails);
+        const transformedBookDetails = transformBookDetails(bookDetailsList, requestDetailsData.no_of_copies_list, requestDetailsData.book_condition_list);
+        setRequestDetails({ ...requestDetailsData, bookDetailsList: transformedBookDetails });
       } catch (error) {
         console.error(`Failed to fetch sell request details for request_id ${requestId}:`, error);
       } finally {
@@ -70,6 +65,7 @@ const SellRequestDetail = () => {
       setPurchaseSuccessModalVisible(true);
       if (purchaseResponse.status === 201) {
         message.success('Purchase completed successfully!');
+        setRequestDetails({ ...requestDetails, status: 'Accepted' });
       }
     } catch (error) {
       console.error('Failed to confirm purchase:', error);
@@ -92,6 +88,41 @@ const SellRequestDetail = () => {
     setPurchaseSuccessModalVisible(false);
   };
 
+  const handleDeleteRequest = async () => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this request?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes, delete it',
+      okType: 'danger',
+      cancelText: 'No, cancel',
+      onOk: async () => {
+        try {
+          const response = await callApi(`http://localhost:8000/requests/delete-sell/${requestId}?deleter_id=${user.userId}`, 'patch');
+          if (response.status === 204) {
+            message.success('Request deleted successfully!');
+            setRequestDetails({ ...requestDetails, status: 'Deleted' });
+          }
+        } catch (error) {
+          console.error('Failed to delete sell request:', error);
+          message.error('Failed to delete the request. Please try again.');
+        }
+      },
+    });
+  };
+
+  const transformBookDetails = (bookDetailsList, noOfCopiesList, bookConditionList) => {
+    return bookDetailsList.map((book, index) => ({
+      key: book.isbn,
+      title: book.title || 'N/A',
+      authors: book.author_list ? book.author_list.join(', ') : 'N/A',
+      edition: book.edition_name || 'N/A',
+      isbn: book.isbn,
+      quantity: noOfCopiesList[index],
+      bookCondition: bookConditionList[index], 
+    }));
+  };
+  
+
   if (loading) {
     return <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />;
   }
@@ -102,70 +133,36 @@ const SellRequestDetail = () => {
 
   const columns = [
     {
-      title: 'Request ID',
-      dataIndex: 'request_id',
-      key: 'request_id',
-    },
-    {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
+      title: 'ISBN',
+      dataIndex: 'isbn',
+      key: 'isbn',
     },
     {
       title: 'Book Title',
-      dataIndex: 'bookDetailsList',
-      key: 'bookTitle',
-      render: (text, record) => (
-        <span>
-          {record.bookDetailsList.map((book) => (
-            <div key={book.isbn}>
-              <strong></strong> {book.title}
-            </div>
-          ))}
-        </span>
-      ),
+      dataIndex: 'title',
+      key: 'title',
     },
     {
       title: 'Author',
-      dataIndex: 'bookDetailsList',
-      key: 'bookAuthor',
-      render: (text, record) => (
-        <span>
-          {record.bookDetailsList.map((book) => (
-            <div key={book.isbn}>
-              <strong></strong> {book.author_list.join(', ')}
-            </div>
-          ))}
-        </span>
-      ),
+      dataIndex: 'authors',
+      key: 'authors',
     },
     {
       title: 'Edition',
-      dataIndex: 'bookDetailsList',
-      key: 'bookEdition',
-      render: (text, record) => (
-        <span>
-          {record.bookDetailsList.map((book) => (
-            <div key={book.isbn}>
-              <strong></strong> {book.edition_name}
-            </div>
-          ))}
-        </span>
-      ),
-    },
-    {
-      title: 'ISBN List',
-      dataIndex: 'isbn_list',
-      key: 'isbn_list',
-      render: (isbnList) => (isbnList ? isbnList.join(', ') : ''),
+      dataIndex: 'edition',
+      key: 'edition',
     },
     {
       title: 'Quantity',
-      dataIndex: 'no_of_copies_list',
-      key: 'no_of_copies_list',
+      dataIndex: 'quantity',
+      key: 'quantity',
+    },
+    {
+      title: 'Book Condition',
+      dataIndex: 'bookCondition',
+      key: 'bookCondition',
     },
     // Add separate columns for each book detail
-
   ];
   
   // 然後在Table中將`bookDetailsList`排除在外:
@@ -176,14 +173,29 @@ const SellRequestDetail = () => {
     rowKey="request_id"
   />
   
-  
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Sell Request Details</h2>
-      <Table dataSource={[requestDetails]} columns={columns} rowKey="request_id" />
-      <Button className='bg-blue-500' type="primary" onClick={showModal}>
-        Confirm Purchase
-      </Button>
+      <p><strong>Request ID:</strong> {requestDetails?.request_id}</p>
+      <p><strong>Price:</strong> {requestDetails?.price}</p>
+      <p><strong>Status:</strong> {requestDetails?.status}</p>
+      <Table dataSource={requestDetails?.bookDetailsList} columns={columns} pagination={false} />
+
+      {user && user.userId !== requestDetails.poster_id && requestDetails.status === 'Remained' && (
+        <Button className='bg-blue-500' type="primary" onClick={showModal}>
+          Confirm Purchase
+        </Button>
+      )}
+      
+      {user && user.userId === requestDetails.poster_id && requestDetails.status === 'Remained' && (
+        <Button 
+          className='bg-red-500 text-white' 
+          type="danger" 
+          onClick={handleDeleteRequest}
+        >
+          Delete Request
+        </Button>
+      )}
 
       <Modal
         title={`Confirm Purchase - Request ID: ${requestDetails.request_id}`}
@@ -204,7 +216,7 @@ const SellRequestDetail = () => {
       >
         <p>Order ID: {requestDetails?.request_id}</p>
         <p>Order Total: {requestDetails?.price}</p>
-        <p>Seller ID: {sellerInfo?.user_id}</p>
+        <p>Seller Username: {sellerInfo?.username}</p>
         <p>Seller Email: {sellerInfo?.email}</p>
         <p>Seller Phone: {sellerInfo?.phone_number}</p>
         <p>Book Details:</p>
@@ -212,8 +224,8 @@ const SellRequestDetail = () => {
           {requestDetails?.bookDetailsList.map((book) => (
             <li key={book.isbn}>
               <strong>Title:</strong> {book.title} <br />
-              <strong>Author:</strong> {book.author_list.join(', ')} <br />
-              <strong>Edition:</strong> {book.edition_name} <br />
+              <strong>Author:</strong> {book.author_list ? book.author_list.join(', ') : 'N/A'} <br />
+              <strong>Edition:</strong> {book.edition_name || 'N/A'} <br />
             </li>
           ))}
         </ul>

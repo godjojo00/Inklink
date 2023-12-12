@@ -65,16 +65,20 @@ async def create_exchange_response(exchange_res: ResponseBase, db: db_dependency
 
 @router.get("/{response_id}", status_code=status.HTTP_200_OK)
 async def get_exchange_response(response_id: int, db: db_dependency):
-    db_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.response_id == response_id).first()
+    db_res = db.query(models.ExchangeResponse, models.User.username).filter(models.ExchangeResponse.response_id == response_id)\
+               .join(models.User, models.ExchangeResponse.responder_id == models.User.user_id).first()
     if db_res is None:
         raise HTTPException(status_code=404, detail="Exchange response not found")
+
+    exchange_response, username = db_res
+    db_res_dict = {c.key: getattr(exchange_response, c.key) for c in inspect(exchange_response).mapper.column_attrs}
+    db_res_dict["username"] = username
     
     exchange_list = db.query(models.ProposeToExchange).filter(models.ProposeToExchange.response_id == response_id).all()
     isbn_list = [record.isbn for record in exchange_list]
     no_of_copies_list = [record.no_of_copies for record in exchange_list]
     book_condition_list = [record.book_condition for record in exchange_list]
-
-    db_res_dict = {c.key: getattr(db_res, c.key) for c in inspect(db_res).mapper.column_attrs}
+    
     db_res_dict["isbn_list"] = isbn_list
     db_res_dict["no_of_copies_list"] = no_of_copies_list
     db_res_dict["book_condition_list"] = book_condition_list

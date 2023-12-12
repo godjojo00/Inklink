@@ -12,6 +12,8 @@ import SellRequestDetail from './pages/sellrequestdetail';
 import RatingPage from './pages/rating';
 import SearchPage from './pages/search'; 
 import PurchaseRecord from './pages/purchaseRecord';
+import MyReqeusts from './pages/myRequests';
+import Logout from './pages/logout';
 
 function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
@@ -47,6 +49,8 @@ function App() {
             <Route element={<RatingPage />} path="/rating" />
             <Route element={<SearchPage />} path="/search" />
             <Route element={<PurchaseRecord />} path="/purchaserecord" />
+            <Route element={<MyReqeusts />} path="/myRequests" />
+            <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
           </Routes>
         </div>
       </UserProvider>
