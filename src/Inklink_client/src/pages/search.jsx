@@ -6,8 +6,10 @@ import { Link } from 'react-router-dom';
 const ExchangeSearch = () => {
   const [sellerName, setSellerName] = useState('');
   const [priceLimit, setPriceLimit] = useState('');
+  const [userName, setuserName] = useState('');
   const [exchangeData, setExchangeData] = useState([]);
   const [sellData, setSellData] = useState([]);
+
 
   const renderDetail = (record, type) => (
     <Link to={`/${type}/${record.request_id}`}>
@@ -151,6 +153,10 @@ const ExchangeSearch = () => {
       if (sellerName) {
         params.append('book_title', sellerName);
       }
+      
+      if (userName) {
+        params.append('seller_name', userName); 
+      }
       // No need to append price_limit if not provided
 
       const queryString = params.toString();
@@ -195,10 +201,14 @@ const ExchangeSearch = () => {
       if (sellerName) {
         params.append('book_title', sellerName);
       }
+      if (userName) {
+        params.append('seller_name', userName); 
+      }
       if (priceLimit) {
         params.append('price_limit', priceLimit);
       }
-      params.append('status', 'All');
+
+      params.append('status', 'Remained');
       const queryString = params.toString();
       const apiUrl = `http://localhost:8000/requests/sell?${queryString}`;
 
@@ -241,6 +251,7 @@ const ExchangeSearch = () => {
     setSellData([]);
     setSellerName('');
     setPriceLimit('');
+    setuserName('');
   };
 
   // Determine whether to show search form based on results
@@ -263,6 +274,14 @@ const ExchangeSearch = () => {
             onChange={(e) => setPriceLimit(e.target.value)}
             style={{ width: '300px', marginBottom: '0.5rem' }}
           />
+          <Input
+            placeholder="Enter Seller's Name"
+            value={userName}
+            onChange={(e) => setuserName(e.target.value)}
+            style={{ width: '300px', marginBottom: '0.5rem' }}
+          />
+          
+
           <Button
             className='w-80 bg-blue-500 hover.bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2'
             onClick={searchExchange}
@@ -277,23 +296,23 @@ const ExchangeSearch = () => {
           </Button>
         </>
       )}
-
+    
       {exchangeData.length > 0 && (
         <div className="mt-80">
-          <h3 className="text-xl font-bold mb-2">Exchange Requests</h3>
+          <h2 className="text-xl font-bold mt-40">Exchange Requests</h2>
           {/* 顯示 Exchange Requests 的 Table */}
-          <Table dataSource={exchangeData} columns={exchangeColumns} rowKey="request_id" />
+          <Table dataSource={exchangeData} columns={exchangeColumns} rowKey="request_id" pagination={{ pageSize: 10 }}  style={{ marginTop: '80px' }} />
         </div>
       )}
 
       {sellData.length > 0 && (
         <div className="mt-80">
-          <h3 className="text-xl font-bold mb-2">Sell Requests</h3>
+          <h2 className="text-xl font-bold mt-20">Sell Requests</h2>
           {/* 顯示 Sell Requests 的 Table */}
-          <Table dataSource={sellData} columns={sellColumns} rowKey="request_id" />
+          <Table dataSource={sellData} columns={sellColumns} rowKey="request_id" pagination={{ pageSize: 10 }}  style={{ marginTop: '20px' }} />
         </div>
       )}
-
+      
       {(exchangeData.length > 0 || sellData.length > 0) && (
         <Button
           className='w-80 bg-gray-500 hover.bg-gray-700 text-white font-bold py-2 px-4 rounded mt-4 mb-40'
