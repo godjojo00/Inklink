@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
-from typing import List
+from typing import List, Optional
 
 from database import db_dependency
 import models
@@ -74,3 +75,19 @@ async def get_book_info(isbn: str, db: db_dependency):
     author_list = [author.author_name for author in authors]
     merged_result["author_list"] = author_list
     return merged_result
+
+@router.get("/books", status_code=status.HTTP_200_OK)
+async def search_books(db: db_dependency, 
+                       book_title: Optional[str] = None, 
+                       author: Optional[str] = None):
+    result = db.query(models.BookIsbns.isbn)\
+        .join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id)\
+        .join(models.BookAuthors, models.BookIsbns.edition_id == models.BookAuthors.edition_id)
+    if book_title is not None:
+        result = result.filter(func.lower(models.Book.title).contains(func.lower(book_title)))
+    if author is not None:
+        result = result.filter(func.lower(models.BookAuthors.author_name).contains(func.lower(author)))
+
+    result = result.distinct().all()
+    isbn_list = [item[0] for item in result]
+    return {"isbn_list": isbn_list}
