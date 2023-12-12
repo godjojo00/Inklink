@@ -31,9 +31,9 @@ const PurchaseRecord = () => {
               const purchaseRequestResponse = await callApi(purchaseRequestUrl, 'get');
               const purchaseRequestData = purchaseRequestResponse.data;
 
-              if (purchaseRequestData.buyer_id !== user.userId) {
-                return null;
-              }
+              //if (purchaseRequestData.buyer_id !== user.userId) {
+                //return null;
+              //}
 
               const bookDetailsPromises = purchaseRequestData.isbn_list.map(async (isbn) => {
                 try {
@@ -97,17 +97,12 @@ const PurchaseRecord = () => {
 
   const columns = [
     {
-      title: 'Orders ID',
+      title: 'Order ID',
       dataIndex: 'request_id',
       key: 'request_id',
     },
     {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
-    },
-    {
-      title: 'Book Title',
+      title: 'Book Titles',
       dataIndex: 'bookDetailsList',
       key: 'bookTitle',
       render: (text, record) => (
@@ -119,6 +114,11 @@ const PurchaseRecord = () => {
           ))}
         </span>
       ),
+    },
+    {
+      title: 'Total Price',
+      dataIndex: 'price',
+      key: 'price',
     },
     {
       title: 'Order Creation Time',
@@ -146,11 +146,11 @@ const PurchaseRecord = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">這是您的訂單記錄：</h2>
+      <h2 className="text-2xl font-bold mb-4">Selling Requests Purchased By You</h2>
       <Table dataSource={sortedPurchaseRecords} columns={columns} rowKey="request_id" />
 
       <Modal
-        title={`Purchase Details - Request ID: ${purchaseDetails?.request_id}`}
+        title={`Purchase Details - Order ID: ${purchaseDetails?.request_id}`}
         visible={modalVisible}
         onCancel={hideModal}
         footer={[
@@ -160,8 +160,7 @@ const PurchaseRecord = () => {
         ]}
       >
         <p>Order ID: {purchaseDetails?.request_id}</p>
-        <p>Order Total: {purchaseDetails?.price}</p>
-        <p>Seller ID: {sellerInfo?.user_id}</p>
+        <p>Seller Username: {sellerInfo?.username}</p>
         <p>Seller Email: {sellerInfo?.email}</p>
         <p>Seller Phone: {sellerInfo?.phone_number}</p>
       </Modal>

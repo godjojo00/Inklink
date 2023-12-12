@@ -75,29 +75,38 @@ const Home = () => {
       </Button>
     </Link>
   );
-  
-  const sellColumns = [
+
+  const commonColumns = [
     {
       title: 'Request ID',
       dataIndex: 'request_id',
       key: 'request_id',
     },
     {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
+      title: 'Posted By',
+      dataIndex: 'seller_name',
+      key: 'seller_name',
     },
     {
       title: 'ISBN List',
       dataIndex: 'isbn_list',
       key: 'isbn_list',
-      render: (isbnList) => isbnList.join(', '), // 将数组转换为逗号分隔的字符串
+      render: (isbnList) => isbnList.join(', '),
     },
     {
-      title: 'Quantity',
+      title: 'Quantity List',
       dataIndex: 'no_of_copies_list',
       key: 'no_of_copies_list',
       render: (noOfCopiesList) => noOfCopiesList.join(', '),
+    },
+  ]
+  
+  const sellColumns = [
+    ...commonColumns,
+    {
+      title: 'Price',
+      dataIndex: 'price',
+      key: 'price',
     },
     {
       title: 'Detail',
@@ -107,27 +116,11 @@ const Home = () => {
   ];
 
   const exchangeColumns = [
+    ...commonColumns,
     {
-      title: 'Request ID',
-      dataIndex: 'request_id',
-      key: 'request_id',
-    },
-    {
-      title: 'ISBN List',
-      dataIndex: 'isbn_list',
-      key: 'isbn_list',
-      render: (isbnList) => isbnList.join(', '), // 将数组转换为逗号分隔的字符串
-    },
-    {
-      title: 'Description',
+      title: 'Wishlist',
       dataIndex: 'wishlist_description',
       key: 'wishlist_description',
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'no_of_copies_list',
-      key: 'no_of_copies_list',
-      render: (noOfCopiesList) => noOfCopiesList.join(', '),
     },
     {
       title: 'Detail',
@@ -139,12 +132,12 @@ const Home = () => {
   return (
     <div className="container mx-auto mt-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">賣書文</h2>
+        <h2 className="text-2xl font-bold mb-4">Selling Requests</h2>
         <Table dataSource={sellPosts} columns={sellColumns} rowKey="request_id" />
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold mb-4">交換文</h2>
+        <h2 className="text-2xl font-bold mb-4">Exchange Requests</h2>
         <Table dataSource={exchangePosts} columns={exchangeColumns} rowKey="request_id" />
       </div>
     </div>
