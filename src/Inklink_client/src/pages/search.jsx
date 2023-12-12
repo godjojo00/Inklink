@@ -59,11 +59,11 @@ const ExchangeSearch = () => {
       dataIndex: 'request_id',
       key: 'request_id',
     },
-    {
-      title: 'Book Title', // 新增這個欄位
-      dataIndex: 'book_title',
-      key: 'book_title',
-    },
+    //{
+      //title: 'Book Title', // 新增這個欄位
+      //dataIndex: 'book_title',
+      //key: 'book_title',
+    //},
     {
       title: 'Price',
       dataIndex: 'price',
@@ -94,11 +94,11 @@ const ExchangeSearch = () => {
       dataIndex: 'request_id',
       key: 'request_id',
     },
-    {
-      title: 'Book Title', // 新增這個欄位
-      dataIndex: 'book_title',
-      key: 'book_title',
-    },
+    //{
+      //title: 'Book Title', // 新增這個欄位
+      //dataIndex: 'book_title',
+      //key: 'book_title',
+    //},
     {
       title: 'ISBN List',
       dataIndex: 'isbn_list',
