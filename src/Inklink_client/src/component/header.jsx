@@ -19,7 +19,7 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
         </div>
         <div className="flex items-center space-x-4">
           {/* Always show the "Search" link */}
-          <Link to="/search" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+          <Link to="/" className="hover:bg-gray-700 px-3 py-2 rounded-md">
             Search Requests
           </Link>
           <Link to="/searchBooks" className="hover:bg-gray-700 px-3 py-2 rounded-md">
