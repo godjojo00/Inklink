@@ -37,7 +37,23 @@ const ExchangeAnalysisPage = () => {
         'get'
       );
 
-      setExchangeData(response.data);
+      // 获取书籍信息
+      const updatedExchangeData = await Promise.all(
+        response.data.map(async (exchangeItem) => {
+          try {
+            const bookInfo = await callApi(
+              `http://localhost:8000/books/book?isbn=${exchangeItem.isbn}`,
+              'get'
+            );
+            return { ...exchangeItem, bookInfo: bookInfo.data };
+          } catch (error) {
+            console.error(`Failed to fetch book info for ISBN ${exchangeItem.isbn}:`, error);
+            return exchangeItem;
+          }
+        })
+      );
+
+      setExchangeData(updatedExchangeData);
     } catch (error) {
       console.error('Failed to fetch exchange data:', error);
     } finally {
@@ -48,6 +64,19 @@ const ExchangeAnalysisPage = () => {
   const columns = [
     { title: 'ISBN', dataIndex: 'isbn', key: 'isbn' },
     { title: 'Total Quantity', dataIndex: 'total_quantity', key: 'total_quantity' },
+    // 新增書本資訊列
+    {
+      title: 'Book Info',
+      dataIndex: 'bookInfo',
+      key: 'bookInfo',
+      render: (text, record) => (
+        <div>
+          <p>Title: {text.title}</p>
+          <p>Author: {text.author_list.join(', ')}</p>
+          <p>Edition_ID: {text.edition_id}</p>
+        </div>
+      ),
+    },
   ];
 
   const onFilterChange = (e) => {

@@ -12,11 +12,11 @@ const Header = ({ isLoggedIn, username, role, onLogout }) => {
   };
 
   return (
-    <div className={`bg-${location.pathname.startsWith('/admin') ? 'blue-500' : 'gray-800'} text-white p-4`}>
+    <div className="bg-gray-800 text-white p-4">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
-          <Link to={location.pathname.startsWith('/admin') ? '/admin' : '/'} className="text-2xl font-bold mr-4">
-            {location.pathname.startsWith('/admin') ? 'InkLink Admin' : 'InkLink'}
+          <Link to="/" className="text-2xl font-bold mr-4">
+            Inklink
           </Link>
         </div>
         <div className="flex items-center space-x-4">
@@ -48,7 +48,7 @@ const Header = ({ isLoggedIn, username, role, onLogout }) => {
               </Link>
 
               {/* Show admin-only links */}
-              {role === 'admin' && (
+              {/* {role === 'admin' && (
                 <>
                   <Link to="/analyzeSells" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                     Analyze Sells
@@ -56,11 +56,11 @@ const Header = ({ isLoggedIn, username, role, onLogout }) => {
                   <Link to="/analyzeExchanges" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                     Analyze Exchanges
                   </Link>
-                  <Link to="/addBooks" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                  <Link to="/createbook" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                     Add Books
                   </Link>
                 </>
-              )}
+              )} */}
             </>
           )}
 

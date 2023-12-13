@@ -19,6 +19,7 @@ import Logout from './pages/logout';
 import HomeAdmin from './pages/HomeAdmin';
 import SellAnalysisPage from './pages/analsell';
 import ExchangeAnalysisPage from './pages/analexchange';
+import CreateBookForm from './pages/createbook';
 
 function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
@@ -68,6 +69,7 @@ function App() {
             <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
             <Route path="/analsell" element={<SellAnalysisPage />} />
             <Route path="/analexchange" element={<ExchangeAnalysisPage />} />
+            <Route path="/createbook" element={<CreateBookForm />} />
           </Routes>
         </div>
       </UserProvider>

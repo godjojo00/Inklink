@@ -37,7 +37,23 @@ const SellAnalysisPage = () => {
         'get'
       );
 
-      setSellData(response.data);
+      // 获取书籍信息
+      const updatedSellData = await Promise.all(
+        response.data.map(async (sellItem) => {
+          try {
+            const bookInfo = await callApi(
+              `http://localhost:8000/books/book?isbn=${sellItem.isbn}`,
+              'get'
+            );
+            return { ...sellItem, bookInfo: bookInfo.data };
+          } catch (error) {
+            console.error(`Failed to fetch book info for ISBN ${sellItem.isbn}:`, error);
+            return sellItem;
+          }
+        })
+      );
+
+      setSellData(updatedSellData);
     } catch (error) {
       console.error('Failed to fetch sell data:', error);
     } finally {
@@ -49,6 +65,19 @@ const SellAnalysisPage = () => {
     { title: 'ISBN', dataIndex: 'isbn', key: 'isbn' },
     { title: 'Average Price', dataIndex: 'avg_price', key: 'avg_price' },
     { title: 'Total Quantity', dataIndex: 'total_quantity', key: 'total_quantity' },
+    // 新增书籍信息列
+    {
+      title: 'Book Info',
+      dataIndex: 'bookInfo',
+      key: 'bookInfo',
+      render: (text, record) => (
+        <div>
+          <p>Title: {text.title}</p>
+          <p>Author: {text.author_list.join(', ')}</p>
+          <p>Edition_ID: {text.edition_id}</p>
+        </div>
+      ),
+    },
   ];
 
   const onFilterChange = (e) => {

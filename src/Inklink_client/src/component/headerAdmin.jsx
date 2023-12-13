@@ -32,7 +32,7 @@ const HeaderAdmin = ({ isLoggedIn, username, onLogout }) => {
           <Link to="/searchBooks" className="hover:bg-gray-700 px-3 py-2 rounded-md">
             Search Books
           </Link>
-          <Link to="/addBooks" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+          <Link to="/createbook" className="hover:bg-gray-700 px-3 py-2 rounded-md">
             Add Books
           </Link>
 
