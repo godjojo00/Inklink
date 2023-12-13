@@ -97,6 +97,7 @@ async def search_books(
         conditions.append("LOWER(ba.author_name) LIKE :author")
     if conditions:
         sql_query += " WHERE " + " AND ".join(conditions)
+    sql_query += " ORDER BY bi.isbn"
     sql_query += " OFFSET :offset LIMIT :limit"
 
     params = {

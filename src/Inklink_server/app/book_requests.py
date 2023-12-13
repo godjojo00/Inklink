@@ -1,7 +1,7 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import aliased
 from typing import List, Optional
@@ -76,7 +76,9 @@ async def search_sell_requests(db: db_dependency,
                                seller_name: Optional[str] = None, 
                                price_limit: Optional[float] = None,
                                buyer_id : Optional[int] = None,
-                               status: Optional[str] = "Remained"):
+                               status: Optional[str] = "Remained",
+                               page: int = Query(1, description="Page number", ge=1),
+                               limit: int = Query(10, description="Number of items per page", ge=1)):
     result = db.query(models.SellingRequest.request_id).join(models.Request, models.SellingRequest.request_id == models.Request.request_id)
     
     if book_title is not None:
@@ -93,9 +95,13 @@ async def search_sell_requests(db: db_dependency,
     if status != "All":
         result = result.filter(models.Request.status == status)
     
-    result = result.distinct().all()
-    sell_request_list = [item[0] for item in result]
-    return {"sell_request_list": sell_request_list}
+    result = result.distinct()
+    result = result.order_by(models.SellingRequest.request_id)
+    total_count = result.count()
+    result = result.offset((page - 1) * limit).limit(limit)
+
+    sell_request_list = [item[0] for item in result.all()]
+    return {"total_count": total_count, "request_list": sell_request_list}
 
 @router.get("/sell/{request_id}", status_code=status.HTTP_200_OK)
 async def get_sell_request(request_id: int, db: db_dependency):
@@ -208,7 +214,9 @@ async def search_exchange_requests(db: db_dependency,
                                    book_title: Optional[str] = None,
                                    seller_name: Optional[str] = None, 
                                    description: Optional[str] = None,
-                                   status: Optional[str] = "Remained"):
+                                   status: Optional[str] = "Remained",
+                                   page: int = Query(1, description="Page number", ge=1),
+                                   limit: int = Query(10, description="Number of items per page", ge=1)):
     result = db.query(models.ExchangeRequest.request_id).join(models.Request, models.ExchangeRequest.request_id == models.Request.request_id)
     
     if book_title is not None:
@@ -223,9 +231,13 @@ async def search_exchange_requests(db: db_dependency,
     if status != "All":
         result = result.filter(models.Request.status == status)
     
-    result = result.distinct().all()
-    ex_request_list = [item[0] for item in result]
-    return {"exchange_request_list": ex_request_list}
+    result = result.distinct()
+    result = result.order_by(models.ExchangeRequest.request_id)
+    total_count = result.count()
+    result = result.offset((page - 1) * limit).limit(limit)
+
+    ex_request_list = [item[0] for item in result.all()]
+    return {"total_count": total_count, "request_list": ex_request_list}
 
 @router.get("/exchange/{request_id}", status_code=status.HTTP_200_OK)
 async def get_exchange_request(request_id: int, db: db_dependency):
@@ -252,7 +264,7 @@ async def get_exchange_request(request_id: int, db: db_dependency):
 
     return merged_result
     
-@router.patch("/confirm-exchange/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.patch("/confirm-exchange/{request_id}", status_code=status.HTTP_200_OK)
 async def confirm_exchange_response(request_id: int, response_id: int, user_id: int, db:db_dependency):
     db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
     db_ex_req = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).first()
@@ -282,7 +294,7 @@ async def confirm_exchange_response(request_id: int, response_id: int, user_id: 
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    return
+    return {"responder_id": db_ex_res.responder_id}
 
 @router.patch("/reject-exchange/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def reject_exchange_response(request_id: int, response_id: int, user_id: int, db:db_dependency):
@@ -341,5 +353,10 @@ async def get_all_responses_for_request(request_id: int, db: db_dependency):
     db_ex_req = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).first()
     if db_ex_req is None:
         raise HTTPException(status_code=404, detail="Exchange request not found")
-    db_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == request_id, models.ExchangeResponse.status == 'Available').all()
+    db_res = db.query(models.ExchangeResponse).filter(
+        models.ExchangeResponse.request_id == request_id,
+        or_(
+            models.ExchangeResponse.status == 'Available',
+            models.ExchangeResponse.status == 'Accepted'
+        )).all()
     return {"response_list": db_res}

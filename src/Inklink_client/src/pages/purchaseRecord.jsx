@@ -22,7 +22,7 @@ const PurchaseRecord = () => {
         }
 
         const response = await callApi(`http://localhost:8000/requests/sell?status=Accepted&buyer_id=${user.userId}`, 'get');
-        const purchaseRequestList = response.data.sell_request_list;
+        const purchaseRequestList = Array.isArray(response.data.request_list) ? response.data.request_list : [];
 
         const detailedPurchaseRecords = await Promise.all(
           purchaseRequestList.map(async (purchaseRequestId) => {
@@ -102,6 +102,13 @@ const PurchaseRecord = () => {
       key: 'request_id',
     },
     {
+      title: 'ISBN List',
+      dataIndex: 'isbn_list',
+      key: 'isbn_list',
+      render: (isbnList) => isbnList.join(', '),
+    },
+    /*
+    {
       title: 'Book Titles',
       dataIndex: 'bookDetailsList',
       key: 'bookTitle',
@@ -115,6 +122,7 @@ const PurchaseRecord = () => {
         </span>
       ),
     },
+    */
     {
       title: 'Total Price',
       dataIndex: 'price',
@@ -150,7 +158,7 @@ const PurchaseRecord = () => {
       <Table dataSource={sortedPurchaseRecords} columns={columns} rowKey="request_id" />
 
       <Modal
-        title={`Purchase Details - Order ID: ${purchaseDetails?.request_id}`}
+        title={`Purchase Details`}
         visible={modalVisible}
         onCancel={hideModal}
         footer={[
@@ -159,7 +167,7 @@ const PurchaseRecord = () => {
           </Button>,
         ]}
       >
-        <p>Order ID: {purchaseDetails?.request_id}</p>
+        <p>Request ID: {purchaseDetails?.request_id}</p>
         <p>Seller Username: {sellerInfo?.username}</p>
         <p>Seller Email: {sellerInfo?.email}</p>
         <p>Seller Phone: {sellerInfo?.phone_number}</p>

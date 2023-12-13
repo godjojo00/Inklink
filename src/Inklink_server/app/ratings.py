@@ -25,6 +25,8 @@ async def create_rating(request_id: int, rating_user_id: int, score: float, db: 
         buyer = db_sell_req.buyer_id
     elif db_req.is_type == "Exchange":
         db_ex_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == request_id, models.ExchangeResponse.status == "Accepted").first()
+        if db_ex_res is None:
+            raise HTTPException(status_code=400, detail="The exchange request has not been accepted")
         buyer = db_ex_res.responder_id
 
     rated_user_id = None

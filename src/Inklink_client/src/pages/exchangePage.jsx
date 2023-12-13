@@ -12,6 +12,8 @@ const ExchangePage = () => {
     const [form] = Form.useForm();
     const { requestId } = useParams();
     const { user } = useUser();
+    const [responderInfo, setResponderInfo] = useState(null); // New state for responder's info
+    const [responderInfoModalVisible, setResponderInfoModalVisible] = useState(false); // State to control the visibility of the responder info modal
 
     useEffect(() => {
         const fetchExchangePost = async () => {
@@ -36,6 +38,10 @@ const ExchangePage = () => {
             }
         };
 
+        fetchExchangePost();
+    }, [requestId]);
+
+    useEffect(() => {
         const fetchResponses = async () => {
             try {
                 const response = await callApi(`http://localhost:8000/requests/exchange/${requestId}/responses`, 'get');
@@ -47,7 +53,6 @@ const ExchangePage = () => {
                         const detailedResponse = await callApi(`http://localhost:8000/responses/${item.response_id}`, 'get');
                         return detailedResponse.data;
                     }));
-
                     setResponses(detailedResponses);
                 } else {
                     console.error('Invalid data structure:', response.data);
@@ -58,17 +63,27 @@ const ExchangePage = () => {
             }
         };
 
-        fetchExchangePost();
         fetchResponses();
-    }, [requestId]);
+    }, [exchangePost])
+
+    const fetchResponderInfo = async (responderId) => {
+        try {
+            const responderInfoResponse = await callApi(`http://localhost:8000/users/${responderId}`, 'get');
+            setResponderInfo(responderInfoResponse.data);
+        } catch (error) {
+            console.error(`Failed to fetch responder details for responder ID ${responderId}:`, error);
+        }
+    };
 
     const handleConfirmExchange = async (responseId) => {
         try {
             const response = await callApi(`http://localhost:8000/requests/confirm-exchange/${parseInt(requestId, 10)}?response_id=${responseId}&user_id=${user.userId}`, 'patch');
 
             message.success('Exchange confirmed successfully!');
-            setExchangePost({ ...exchangePost, status: 'Accepted' });
             // 可以根據需要更新頁面狀態或執行其他操作
+            await fetchResponderInfo(response.data.responder_id);
+            setResponderInfoModalVisible(true);
+            setExchangePost({ ...exchangePost, status: 'Accepted' });
         } catch (error) {
             console.error('Failed to confirm exchange:', error);
             message.error('Failed to confirm exchange. Please try again.');
@@ -135,7 +150,7 @@ const ExchangePage = () => {
             },
         ];
     
-        if (user && exchangePost && user.userId === exchangePost.poster_id) {
+        if (user && exchangePost && exchangePost.status === 'Remained' && user.userId === exchangePost.poster_id) {
             columns.push({
                 title: 'Action',
                 key: 'action',
@@ -166,11 +181,11 @@ const ExchangePage = () => {
     const onFinish = async (values) => {
         try {
             const response = await callApi('http://localhost:8000/responses/', 'post', {
-                request_id: requestId,
+                request_id: parseInt(requestId, 10),
                 responder_id: user.userId,
-                isbn_list: [values.isbn_list],
-                no_of_copies_list: [values.no_of_copies_list],
-                book_condition_list: [values.book_condition_list],
+                isbn_list: values.isbn_list.split(',').map(s => s.trim()),
+                no_of_copies_list: values.no_of_copies_list.split(',').map(s => parseInt(s.trim(), 10)),
+                book_condition_list: values.book_condition_list.split(',').map(s => s.trim()),
             });
 
             message.success('Response added successfully!');
@@ -178,7 +193,7 @@ const ExchangePage = () => {
             setResponses((prevResponses) => [prevResponses, response.data]);
         } catch (error) {
             console.error('Failed to add response:', error);
-            message.error('Failed to add response. Please try again.');
+            message.error(error.detail);
         }
     };
 
@@ -216,24 +231,33 @@ const ExchangePage = () => {
         }));
     };
 
+    const closeResponderInfoModal = () => {
+        setResponderInfoModalVisible(false);
+    };
+
     return (
         <div className="container mx-auto mt-8">
             {exchangePost && (
                 <div className="mb-8">
                     <h2 className="text-2xl font-bold mb-4">Exchange Request Details</h2>
                     <p><strong>Request ID:</strong> {exchangePost?.request_id}</p>
+                    <p><strong>Posted By:</strong> {exchangePost?.seller_name}</p>
                     <p><strong>Wishlist Description:</strong> {exchangePost.wishlist_description}</p>
                     <p><strong>Status:</strong> {exchangePost?.status}</p>
                     <Table dataSource={exchangePost.bookDetailsList} columns={exchangePostColumns} rowKey="isbn" />
                 </div>
             )}
 
-            {responses.length > 0 && exchangePost && exchangePost.status === 'Remained' && (
+            {responses.length > 0 && exchangePost &&
+                (exchangePost.status === 'Remained' || exchangePost.status === 'Accepted') && (
                 <div>
-                    <h2 className="text-2xl font-bold mb-4">Available Responses</h2>
+                    {exchangePost.status === 'Remained' ? 
+                        <h2 className="text-2xl font-bold mb-4">Available Responses</h2> :
+                        <h2 className="text-2xl font-bold mb-4">Accepted Response</h2>
+                    }
                     <Table
                         key={responses.length}
-                        dataSource={responses.filter((response) => response.status === 'Available')}
+                        dataSource={responses.filter((response) => response.status === (exchangePost.status === 'Remained' ? 'Available' : 'Accepted'))}
                         columns={getAvailableResponseColumns(user, exchangePost, handleConfirmExchange)}
                         rowKey="response_id" // 指定一个唯一的字段作为 key
                     />
@@ -251,7 +275,7 @@ const ExchangePage = () => {
                 </div>
             )}
 
-            {exchangePost && user && exchangePost.poster_id !== user.userId && (
+            {exchangePost && user && exchangePost.status === "Remained" && exchangePost.poster_id !== user.userId && (
                 <Form form={form} onFinish={onFinish} className="mt-4">
                     <Form.Item name="isbn_list" label="ISBN List">
                         <Input placeholder="Enter ISBNs separated by commas" />
@@ -279,6 +303,21 @@ const ExchangePage = () => {
                     Delete Request
                 </Button>
             )}
+
+            <Modal
+                title="Responder Information"
+                visible={responderInfoModalVisible}
+                onCancel={closeResponderInfoModal}
+                footer={[
+                    <Button key="back" onClick={closeResponderInfoModal}>
+                        Close
+                    </Button>,
+                ]}
+            >
+                <p>Responder Username: {responderInfo?.username}</p>
+                <p>Responder Email: {responderInfo?.email}</p>
+                <p>Responder Phone: {responderInfo?.phone_number}</p>
+            </Modal>
         </div>
     );
 };

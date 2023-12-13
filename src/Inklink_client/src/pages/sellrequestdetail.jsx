@@ -177,8 +177,10 @@ const SellRequestDetail = () => {
     <div>
       <h2 className="text-2xl font-bold mb-4">Sell Request Details</h2>
       <p><strong>Request ID:</strong> {requestDetails?.request_id}</p>
+      <p><strong>Posted By:</strong> {requestDetails?.seller_name}</p>
       <p><strong>Price:</strong> {requestDetails?.price}</p>
       <p><strong>Status:</strong> {requestDetails?.status}</p>
+      {requestDetails?.status === 'Accepted' ? <p><strong>Buyer:</strong> {requestDetails?.buyer_name}</p> : <></>}
       <Table dataSource={requestDetails?.bookDetailsList} columns={columns} pagination={false} />
 
       {user && user.userId !== requestDetails.poster_id && requestDetails.status === 'Remained' && (
@@ -214,8 +216,8 @@ const SellRequestDetail = () => {
         onCancel={handlePurchaseSuccessModalOk}
         okButtonProps={{ style: { backgroundColor: '#1d4ed8' } }}
       >
-        <p>Order ID: {requestDetails?.request_id}</p>
-        <p>Order Total: {requestDetails?.price}</p>
+        <p>Request ID: {requestDetails?.request_id}</p>
+        <p>Total Price: {requestDetails?.price}</p>
         <p>Seller Username: {sellerInfo?.username}</p>
         <p>Seller Email: {sellerInfo?.email}</p>
         <p>Seller Phone: {sellerInfo?.phone_number}</p>

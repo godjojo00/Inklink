@@ -35,23 +35,28 @@ const RatingPage = () => {
       }
     } catch (error) {
       console.error('Failed to submit rating:', error);
-      message.error('Failed to submit rating. Please try again.');
+      message.error(error.detail.toString());
     }
   };
 
   return (
     <div className="container mx-auto mt-8">
       <div className="text-2xl font-bold mb-4">
-        Hi! {username ? `${username}, this is your average rating score:` : 'Loading...'}
+        Hi, {username ? `${username}! This is your average rating score:` : 'Loading...'}
       </div>
 
-      {averageRating !== null && (
+      {averageRating != null ? (
         <div className="mb-4">
           <p>Average Rating: {averageRating}</p>
           <Rate disabled defaultValue={averageRating} />
         </div>
+      ) : (
+        <div className="mb-4">
+          <p>Your average rating is not available.</p>
+        </div>
       )}
-        <h2 className="text-2xl font-bold mb-4">You can rate your deal here!</h2>
+      
+      <h2 className="text-2xl font-bold mb-4">You can rate your deal here!</h2>
       <Form
         name="rating_form"
         onFinish={onFinish}
@@ -59,11 +64,11 @@ const RatingPage = () => {
         wrapperCol={{ span: 12 }}
       >
         <Form.Item
-          label="Order ID"
+          label="Request ID"
           name="request_id"
-          rules={[{ required: true, message: 'Please enter Order ID!' }]}
+          rules={[{ required: true, message: 'Please enter Request ID!' }]}
         >
-          <Input placeholder="Enter the Order ID you want to rate" />
+          <Input placeholder="Enter the Request ID you want to rate" />
         </Form.Item>
 
         <Form.Item
