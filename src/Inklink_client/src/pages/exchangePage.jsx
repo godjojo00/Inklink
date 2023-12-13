@@ -181,11 +181,11 @@ const ExchangePage = () => {
     const onFinish = async (values) => {
         try {
             const response = await callApi('http://localhost:8000/responses/', 'post', {
-                request_id: requestId,
+                request_id: parseInt(requestId, 10),
                 responder_id: user.userId,
-                isbn_list: [values.isbn_list],
-                no_of_copies_list: [values.no_of_copies_list],
-                book_condition_list: [values.book_condition_list],
+                isbn_list: values.isbn_list.split(',').map(s => s.trim()),
+                no_of_copies_list: values.no_of_copies_list.split(',').map(s => parseInt(s.trim(), 10)),
+                book_condition_list: values.book_condition_list.split(',').map(s => s.trim()),
             });
 
             message.success('Response added successfully!');
@@ -193,7 +193,7 @@ const ExchangePage = () => {
             setResponses((prevResponses) => [prevResponses, response.data]);
         } catch (error) {
             console.error('Failed to add response:', error);
-            message.error('Failed to add response. Please try again.');
+            message.error(error.detail);
         }
     };
 
@@ -275,7 +275,7 @@ const ExchangePage = () => {
                 </div>
             )}
 
-            {exchangePost && user && exchangePost.poster_id !== user.userId && (
+            {exchangePost && user && exchangePost.status === "Remained" && exchangePost.poster_id !== user.userId && (
                 <Form form={form} onFinish={onFinish} className="mt-4">
                     <Form.Item name="isbn_list" label="ISBN List">
                         <Input placeholder="Enter ISBNs separated by commas" />

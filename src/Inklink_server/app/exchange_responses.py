@@ -91,14 +91,14 @@ async def get_user_exchange_response(user_id: int,
                                      status: Optional[str]="All",
                                      page: int = Query(1, description="Page number", ge=1),
                                      limit: int = Query(10, description="Number of items per page", ge=1)):
-    db_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.responder_id == user_id)
+    db_res = db.query(models.ExchangeResponse.response_id).filter(models.ExchangeResponse.responder_id == user_id)
     if status != "All":
         db_res.filter(models.ExchangeResponse.status == status)
 
     result = db_res.order_by(models.ExchangeResponse.response_id)
     total_count = result.count()
     result = result.offset((page - 1) * limit).limit(limit)
-    ex_res_list = [item for item in result.all()]
+    ex_res_list = [item[0] for item in result.all()]
     return {"total_count": total_count, "response_list": ex_res_list}
 
 @router.patch("/delete/{response_id}", status_code=status.HTTP_204_NO_CONTENT)

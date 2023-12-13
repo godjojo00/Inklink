@@ -35,6 +35,9 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
               <Link to="/myRequests" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                 My Requests
               </Link>
+              <Link to="/myResponses" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                My Responses
+              </Link>
               <Link to="/owns" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                 My Books
               </Link>
