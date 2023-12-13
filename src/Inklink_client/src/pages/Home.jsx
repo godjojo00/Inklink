@@ -155,6 +155,7 @@ const Home = () => {
 
   return (
     <div className="container mx-auto mt-8">
+      <h1><strong>All Requests</strong></h1>
       <Tabs defaultActiveKey="1">
         <TabPane tab="Selling Requests" key="1">
           <div>
