@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import aliased
 from typing import List, Optional
@@ -264,7 +264,7 @@ async def get_exchange_request(request_id: int, db: db_dependency):
 
     return merged_result
     
-@router.patch("/confirm-exchange/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.patch("/confirm-exchange/{request_id}", status_code=status.HTTP_200_OK)
 async def confirm_exchange_response(request_id: int, response_id: int, user_id: int, db:db_dependency):
     db_req = db.query(models.Request).filter(models.Request.request_id == request_id).first()
     db_ex_req = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).first()
@@ -294,7 +294,7 @@ async def confirm_exchange_response(request_id: int, response_id: int, user_id: 
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    return
+    return {"responder_id": db_ex_res.responder_id}
 
 @router.patch("/reject-exchange/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def reject_exchange_response(request_id: int, response_id: int, user_id: int, db:db_dependency):
@@ -353,5 +353,10 @@ async def get_all_responses_for_request(request_id: int, db: db_dependency):
     db_ex_req = db.query(models.ExchangeRequest).filter(models.ExchangeRequest.request_id == request_id).first()
     if db_ex_req is None:
         raise HTTPException(status_code=404, detail="Exchange request not found")
-    db_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.request_id == request_id, models.ExchangeResponse.status == 'Available').all()
+    db_res = db.query(models.ExchangeResponse).filter(
+        models.ExchangeResponse.request_id == request_id,
+        or_(
+            models.ExchangeResponse.status == 'Available',
+            models.ExchangeResponse.status == 'Accepted'
+        )).all()
     return {"response_list": db_res}

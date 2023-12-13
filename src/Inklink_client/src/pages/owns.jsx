@@ -13,6 +13,10 @@ const Owns = ({ username, token }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
 
+  useEffect(() => {
+    fetchBooks();
+  }, [user.user_id, token]);
+
   const columns = [
     {
       title: 'ISBN',
@@ -51,7 +55,7 @@ const Owns = ({ username, token }) => {
         }
       );
       if (response.status === 200) {
-        setBooks(response.data);
+        setBooks(response.data.map(book => ({ ...book, key: book.isbn })));
       }
     } catch (error) {
       console.error(error);
@@ -75,14 +79,11 @@ const Owns = ({ username, token }) => {
       );
 
       if (response.status === 200) {
-        setBooks(response.data);
+        setBooks(response.data.map(book => ({ ...book, key: book.isbn })));
       }
     } catch (error) {
       console.log(error);
     }
-    useEffect(() => {
-      fetchBooks();
-    }, [user.user_id, token]);
   };
 
   const onFinish = async (values) => {
