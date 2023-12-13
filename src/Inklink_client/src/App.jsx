@@ -56,6 +56,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/exchange/:requestId" element={<ExchangePage />} />
+            <Route path="/admin/exchange/:requestId" element={<ExchangePage />} />
             <Route path="/signUp" element={<SignUp_Page onLogin={handleLogin} />} />
             <Route path="/login" element={<Login_Page onLogin={handleLogin} />} />
             <Route path="/admin" element={<HomeAdmin onLogin={handleLogin} />} />
@@ -63,6 +64,7 @@ function App() {
             <Route path="/postrequest" element={<PostRequest />} />
             <Route path="/exchange" element={<ExchangePage />} />
             <Route path="/sell/:requestId" element={<SellRequestDetail />} />
+            <Route path="/admin/sell/:requestId" element={<SellRequestDetail />} />
             <Route path="/rating" element={<RatingPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/searchBooks" element={<SearchBooks />} />
