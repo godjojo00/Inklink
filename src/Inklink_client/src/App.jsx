@@ -10,7 +10,6 @@ import { UserProvider } from './Usercontext';
 import ExchangePage from './pages/exchangePage';
 import SellRequestDetail from './pages/sellrequestdetail';
 import RatingPage from './pages/rating';
-import SearchPage from './pages/search'; 
 import PurchaseRecord from './pages/purchaseRecord';
 import SearchBooks from './pages/searchBooks';
 import MyReqeusts from './pages/myRequests';
@@ -48,7 +47,6 @@ function App() {
             <Route element={<ExchangePage />} path='/exchange' />
             <Route path='/sell/:requestId' element={<SellRequestDetail />} />
             <Route element={<RatingPage />} path="/rating" />
-            <Route element={<SearchPage />} path="/search" />
             <Route element={<SearchBooks />} path="/searchBooks" />
             <Route element={<PurchaseRecord />} path="/purchaserecord" />
             <Route element={<MyReqeusts />} path="/myRequests" />
