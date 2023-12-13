@@ -1,8 +1,10 @@
+// Header.jsx
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
-const Header = ({ isLoggedIn, username, onLogout }) => {
+const Header = ({ isLoggedIn, username, role, onLogout }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogoutClick = () => {
     onLogout();
@@ -14,7 +16,7 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
           <Link to="/" className="text-2xl font-bold mr-4">
-            InkLink
+            Inklink
           </Link>
         </div>
         <div className="flex items-center space-x-4">
@@ -47,6 +49,21 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
               <Link to="/rating" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                 Rating
               </Link>
+
+              {/* Show admin-only links */}
+              {/* {role === 'admin' && (
+                <>
+                  <Link to="/analyzeSells" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                    Analyze Sells
+                  </Link>
+                  <Link to="/analyzeExchanges" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                    Analyze Exchanges
+                  </Link>
+                  <Link to="/createbook" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                    Add Books
+                  </Link>
+                </>
+              )} */}
             </>
           )}
 
