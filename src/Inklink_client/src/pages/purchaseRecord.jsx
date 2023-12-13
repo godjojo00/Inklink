@@ -9,6 +9,7 @@ const PurchaseRecord = () => {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [purchaseDetails, setPurchaseDetails] = useState(null);
+  const [sellerInfo, setSellerInfo] = useState(null); // 添加了卖家信息的状态
   const { user } = useUser();
 
   useEffect(() => {
@@ -30,9 +31,9 @@ const PurchaseRecord = () => {
               const purchaseRequestResponse = await callApi(purchaseRequestUrl, 'get');
               const purchaseRequestData = purchaseRequestResponse.data;
 
-              if (purchaseRequestData.buyer_id !== user.userId) {
-                return null;
-              }
+              //if (purchaseRequestData.buyer_id !== user.userId) {
+                //return null;
+              //}
 
               const bookDetailsPromises = purchaseRequestData.isbn_list.map(async (isbn) => {
                 try {
@@ -71,9 +72,23 @@ const PurchaseRecord = () => {
     fetchPurchaseRecords();
   }, [user.userId]);
 
-  const showModal = (purchaseDetails) => {
+  const fetchSellerInfo = async (posterId) => {
+    try {
+      const sellerInfoResponse = await callApi(`http://localhost:8000/users/${posterId}`, 'get');
+      setSellerInfo(sellerInfoResponse.data);
+    } catch (error) {
+      console.error(`Failed to fetch seller details for poster ID ${posterId}:`, error);
+    }
+  };
+
+  const showModal = async (purchaseDetails) => {
     setPurchaseDetails(purchaseDetails);
     setModalVisible(true);
+
+    // Fetch seller information
+    if (purchaseDetails && purchaseDetails.poster_id) {
+      await fetchSellerInfo(purchaseDetails.poster_id);
+    }
   };
 
   const hideModal = () => {
@@ -82,17 +97,12 @@ const PurchaseRecord = () => {
 
   const columns = [
     {
-      title: 'Orders ID',
+      title: 'Order ID',
       dataIndex: 'request_id',
       key: 'request_id',
     },
     {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
-    },
-    {
-      title: 'Book Title',
+      title: 'Book Titles',
       dataIndex: 'bookDetailsList',
       key: 'bookTitle',
       render: (text, record) => (
@@ -106,12 +116,17 @@ const PurchaseRecord = () => {
       ),
     },
     {
+      title: 'Total Price',
+      dataIndex: 'price',
+      key: 'price',
+    },
+    {
       title: 'Order Creation Time',
       dataIndex: 'buying_time',
       key: 'buying_time',
     },
     {
-      title: 'Action',
+      title: 'Seller Info',
       key: 'action',
       render: (text, record) => (
         <Button onClick={() => showModal(record)}>View Details</Button>
@@ -131,11 +146,11 @@ const PurchaseRecord = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">這是您的訂單記錄：</h2>
+      <h2 className="text-2xl font-bold mb-4">Selling Requests Purchased By You</h2>
       <Table dataSource={sortedPurchaseRecords} columns={columns} rowKey="request_id" />
 
       <Modal
-        title={`Purchase Details - Request ID: ${purchaseDetails?.request_id}`}
+        title={`Purchase Details - Order ID: ${purchaseDetails?.request_id}`}
         visible={modalVisible}
         onCancel={hideModal}
         footer={[
@@ -145,7 +160,9 @@ const PurchaseRecord = () => {
         ]}
       >
         <p>Order ID: {purchaseDetails?.request_id}</p>
-        <p>Order Total: {purchaseDetails?.price}</p>
+        <p>Seller Username: {sellerInfo?.username}</p>
+        <p>Seller Email: {sellerInfo?.email}</p>
+        <p>Seller Phone: {sellerInfo?.phone_number}</p>
       </Modal>
     </div>
   );

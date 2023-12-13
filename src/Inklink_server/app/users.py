@@ -54,7 +54,8 @@ async def login(account: LoginBase, db: db_dependency):
         raise HTTPException(status_code=404, detail="Username doesn't exist")
     else:
         if (db_username.password == _account.password):
-            return {"user_id": db_username.user_id}
+            return {"user_id": db_username.user_id,
+                    "role": db_username.role}
         else: 
             return {"login": "failed"}
 

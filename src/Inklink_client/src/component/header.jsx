@@ -1,7 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Header = ({ isLoggedIn, username, onLogout }) => {
+  const navigate = useNavigate();
+
+  const handleLogoutClick = () => {
+    onLogout();
+    navigate('/logout');
+  };
+
   return (
     <div className="bg-gray-800 text-white p-4">
       <div className="container mx-auto flex justify-between items-center">
@@ -13,14 +20,20 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
         <div className="flex items-center space-x-4">
           {/* Always show the "Search" link */}
           <Link to="/search" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-            搜尋
+            Search Requests
+          </Link>
+          <Link to="/searchBooks" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            Search Books
           </Link>
 
           {/* Show additional links if the user is logged in */}
           {isLoggedIn && (
             <>
               <Link to="/purchaserecord" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-                訂單記錄
+                Purchase Record
+              </Link>
+              <Link to="/myRequests" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                My Requests
               </Link>
               <Link to="/owns" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                 我的藏書
@@ -39,7 +52,7 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
             <div className="flex items-center space-x-4">
               <span className="text-gray-300">{username}</span>
               <button
-                onClick={onLogout}
+                onClick={handleLogoutClick}
                 className="text-blue-600 hover:text-blue-400 focus:outline-none"
               >
                 Logout
