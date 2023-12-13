@@ -47,8 +47,18 @@ const MyResponses = () => {
     setCurrentPage(page);
   };
 
-  const onFilterChange = (e) => {
-    setResponseFilters({ ...responseFilters, [e.target.name]: e.target.value });
+  const deleteResponse = async (responseId) => {
+    try {
+      await callApi(`http://localhost:8000/responses/delete/${responseId}?user_id=${user.userId}`, 'patch');
+      fetchMyResponses(currentPage);
+    } catch (error) {
+      console.error(`Failed to delete response with response_id ${responseId}:`, error);
+    }
+  };
+
+  const onFilterChange = (value) => {
+    setResponseFilters({ ...responseFilters, status: value });
+    fetchMyResponses(1); // Immediately fetch data with the new filter
   };
 
   const onSearch = () => {
@@ -71,9 +81,9 @@ const MyResponses = () => {
       </Button>
     </Link>
   );
-
+  
   const renderStatusFilter = (filterState, onChange) => (
-    <Select defaultValue="All" style={{ width: 120 }} onChange={(value) => onChange({ target: { name: 'status', value } })}>
+    <Select defaultValue="All" style={{ width: 120 }} onChange={onChange}>
       <Option value="All">All</Option>
       <Option value="Available">Available</Option>
       <Option value="Accepted">Accepted</Option>
@@ -89,7 +99,7 @@ const MyResponses = () => {
         key: 'response_id',
     },
     {
-        title: 'Status',
+        title: 'Response Status',
         dataIndex: 'status',
         key: 'status',
     },
@@ -108,8 +118,31 @@ const MyResponses = () => {
     {
       title: 'Request Detail',
       key: 'detail',
-      render: (text, record) => renderDetail(record, 'exchange'),
+      render: (text, record) => {
+        if (record.status === 'Available' || record.status === 'Accepted') {
+            return renderDetail(record, 'exchange');
+          }
+          return "N/A";
+      },
     },
+    {
+        title: 'Actions',
+        key: 'actions',
+        render: (text, record) => {
+          if (record.status === 'Available') {
+            return (
+              <Button 
+                type="primary"
+                danger 
+                onClick={() => deleteResponse(record.response_id)}
+              >
+                Delete
+              </Button>
+            );
+          }
+          return "N/A";
+        },
+      },
   ];
 
   return (

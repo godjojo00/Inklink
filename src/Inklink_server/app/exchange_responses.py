@@ -93,7 +93,7 @@ async def get_user_exchange_response(user_id: int,
                                      limit: int = Query(10, description="Number of items per page", ge=1)):
     db_res = db.query(models.ExchangeResponse.response_id).filter(models.ExchangeResponse.responder_id == user_id)
     if status != "All":
-        db_res.filter(models.ExchangeResponse.status == status)
+        db_res = db_res.filter(models.ExchangeResponse.status == status)
 
     result = db_res.order_by(models.ExchangeResponse.response_id)
     total_count = result.count()
