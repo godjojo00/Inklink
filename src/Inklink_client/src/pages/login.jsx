@@ -1,3 +1,4 @@
+// Login_Page.jsx
 import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -17,9 +18,9 @@ const Login_Page = ({ onLogin }) => {
         username: userName,
         password: password,
       });
-
+  
       console.log(res);
-
+  
       if (res.status === 200) {
         if (res.data.login === "failed") {
           console.log(res);
@@ -28,19 +29,28 @@ const Login_Page = ({ onLogin }) => {
           onLogin({
             username: userName,
             user_id: res.data.user_id,
+            role: res.data.role, // 新增用户角色
           });
+  
           message.success('Login successfully!');
           // const userData = res.data; // 这一行似乎多余
-          updateUser({ username: userName, userId: res.data.user_id }); // 修复此行代码
-          // 自动跳转到 Home page
-          setTimeout(() => {
-            navigate("/");
-          }, 1000);
+          updateUser({ username: userName, userId: res.data.user_id, role: res.data.role }); // 修复此行代码
+  
+          // 根据用户角色导航到不同的主页
+          if (res.data.role === 'user') {
+            setTimeout(() => {
+              navigate("/");
+            }, 1000);
+          } else if (res.data.role === 'admin') {
+            setTimeout(() => {
+              navigate("/admin"); // 假设 Admin 主页路径为 "/admin"
+            }, 1000);
+          }
         }
       }
     } catch (error) {
       console.log(error);
-
+  
       if (userName === '' || password === '') {
         message.error('Username or password cannot be empty!');
       } else {
@@ -48,6 +58,7 @@ const Login_Page = ({ onLogin }) => {
       }
     }
   };
+  
 
   return (
     <div className="flex justify-center items-center h-screen">

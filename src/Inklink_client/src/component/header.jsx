@@ -1,8 +1,10 @@
+// Header.jsx
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
-const Header = ({ isLoggedIn, username, onLogout }) => {
+const Header = ({ isLoggedIn, username, role, onLogout }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogoutClick = () => {
     onLogout();
@@ -10,11 +12,11 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
   };
 
   return (
-    <div className="bg-gray-800 text-white p-4">
+    <div className={`bg-${location.pathname.startsWith('/admin') ? 'blue-500' : 'gray-800'} text-white p-4`}>
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
-          <Link to="/" className="text-2xl font-bold mr-4">
-            InkLink
+          <Link to={location.pathname.startsWith('/admin') ? '/admin' : '/'} className="text-2xl font-bold mr-4">
+            {location.pathname.startsWith('/admin') ? 'InkLink Admin' : 'InkLink'}
           </Link>
         </div>
         <div className="flex items-center space-x-4">
@@ -44,6 +46,21 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
               <Link to="/rating" className="hover:bg-gray-700 px-3 py-2 rounded-md">
                 評分
               </Link>
+
+              {/* Show admin-only links */}
+              {role === 'admin' && (
+                <>
+                  <Link to="/analyzeSells" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                    Analyze Sells
+                  </Link>
+                  <Link to="/analyzeExchanges" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                    Analyze Exchanges
+                  </Link>
+                  <Link to="/addBooks" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+                    Add Books
+                  </Link>
+                </>
+              )}
             </>
           )}
 

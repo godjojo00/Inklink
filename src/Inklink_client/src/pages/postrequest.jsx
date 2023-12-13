@@ -12,7 +12,7 @@ const PostRequest = ({ username, token, fetchRequests }) => {
     const [showPrice, setShowPrice] = useState(false);
     const [showWishList, setShowWishList] = useState(false);
     const navigate = useNavigate();
-
+    
     const getUserId = async () => {
         try {
             if (!user) {

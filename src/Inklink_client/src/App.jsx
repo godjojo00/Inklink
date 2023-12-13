@@ -6,29 +6,36 @@ import Login_Page from './pages/login';
 import Owns from './pages/owns';
 import PostRequest from './pages/postrequest';
 import Header from './component/header';
+import HeaderAdmin from './component/headerAdmin';
 import { UserProvider } from './Usercontext';
 import ExchangePage from './pages/exchangePage';
 import SellRequestDetail from './pages/sellrequestdetail';
 import RatingPage from './pages/rating';
-import SearchPage from './pages/search'; 
+import SearchPage from './pages/search';
 import PurchaseRecord from './pages/purchaseRecord';
 import SearchBooks from './pages/searchBooks';
 import MyReqeusts from './pages/myRequests';
 import Logout from './pages/logout';
+import HomeAdmin from './pages/HomeAdmin';
+import SellAnalysisPage from './pages/analsell';
+import ExchangeAnalysisPage from './pages/analexchange';
 
 function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
+  const [role, setRole] = useState('');
   const [username, setUsername] = useState("");
   const [userId, setUserId] = useState("");
 
   const handleLogin = (user) => {
     setUsername(user.username);
+    setRole(user.role);
     setLoggedIn(true);
     setUserId(user.userId);
   };
 
   const handleLogout = () => {
     setUsername("");
+    setRole("");
     setLoggedIn(false);
     setUserId("");
   };
@@ -37,26 +44,33 @@ function App() {
     <Router>
       <UserProvider>
         <div>
-          <Header isLoggedIn={isLoggedIn} username={username} onLogout={handleLogout} />
+          {role === 'admin' ? (
+            <HeaderAdmin isLoggedIn={isLoggedIn} username={username} onLogout={handleLogout} />
+          ) : (
+            <Header isLoggedIn={isLoggedIn} username={username} role={role} onLogout={handleLogout} />
+          )}
+          
           <Routes>
-            <Route element={<Home />} path="/" />
+            <Route path="/" element={<Home />} />
             <Route path="/exchange/:requestId" element={<ExchangePage />} />
-            <Route element={<SignUp_Page onLogin={handleLogin} />} path="/signUp" />
-            <Route element={<Login_Page onLogin={handleLogin} />} path="/login" />
-            <Route element={<Owns />} path="/owns" />
-            <Route element={<PostRequest />} path="/postrequest" />
-            <Route element={<ExchangePage />} path='/exchange' />
-            <Route path='/sell/:requestId' element={<SellRequestDetail />} />
-            <Route element={<RatingPage />} path="/rating" />
-            <Route element={<SearchPage />} path="/search" />
-            <Route element={<SearchBooks />} path="/searchBooks" />
-            <Route element={<PurchaseRecord />} path="/purchaserecord" />
-            <Route element={<MyReqeusts />} path="/myRequests" />
+            <Route path="/signUp" element={<SignUp_Page onLogin={handleLogin} />} />
+            <Route path="/login" element={<Login_Page onLogin={handleLogin} />} />
+            <Route path="/admin" element={<HomeAdmin onLogin={handleLogin} />} />
+            <Route path="/owns" element={<Owns />} />
+            <Route path="/postrequest" element={<PostRequest />} />
+            <Route path="/exchange" element={<ExchangePage />} />
+            <Route path="/sell/:requestId" element={<SellRequestDetail />} />
+            <Route path="/rating" element={<RatingPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/searchBooks" element={<SearchBooks />} />
+            <Route path="/purchaserecord" element={<PurchaseRecord />} />
+            <Route path="/myRequests" element={<MyReqeusts />} />
             <Route path="/logout" element={<Logout onLogout={handleLogout} />} />
+            <Route path="/analsell" element={<SellAnalysisPage />} />
+            <Route path="/analexchange" element={<ExchangeAnalysisPage />} />
           </Routes>
         </div>
       </UserProvider>
-
     </Router>
   );
 }
