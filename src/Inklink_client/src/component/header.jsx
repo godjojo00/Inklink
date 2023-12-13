@@ -36,13 +36,13 @@ const Header = ({ isLoggedIn, username, onLogout }) => {
                 My Requests
               </Link>
               <Link to="/owns" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-                我的藏書
+                My Books
               </Link>
               <Link to="/postrequest" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-                發文
+                Post Requests
               </Link>
               <Link to="/rating" className="hover:bg-gray-700 px-3 py-2 rounded-md">
-                評分
+                Rating
               </Link>
             </>
           )}

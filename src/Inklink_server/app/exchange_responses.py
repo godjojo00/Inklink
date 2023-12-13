@@ -1,9 +1,9 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 from database import db_dependency
 import models, utils
@@ -84,6 +84,22 @@ async def get_exchange_response(response_id: int, db: db_dependency):
     db_res_dict["book_condition_list"] = book_condition_list
 
     return db_res_dict
+
+@router.get("/user/{user_id}", status_code=status.HTTP_200_OK)
+async def get_user_exchange_response(user_id: int, 
+                                     db: db_dependency, 
+                                     status: Optional[str]="All",
+                                     page: int = Query(1, description="Page number", ge=1),
+                                     limit: int = Query(10, description="Number of items per page", ge=1)):
+    db_res = db.query(models.ExchangeResponse).filter(models.ExchangeResponse.responder_id == user_id)
+    if status != "All":
+        db_res.filter(models.ExchangeResponse.status == status)
+
+    result = db_res.order_by(models.ExchangeResponse.response_id)
+    total_count = result.count()
+    result = result.offset((page - 1) * limit).limit(limit)
+    ex_res_list = [item for item in result.all()]
+    return {"total_count": total_count, "response_list": ex_res_list}
 
 @router.patch("/delete/{response_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_response(response_id: int, user_id: int, db:db_dependency):

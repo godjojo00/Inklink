@@ -222,6 +222,7 @@ const ExchangePage = () => {
                 <div className="mb-8">
                     <h2 className="text-2xl font-bold mb-4">Exchange Request Details</h2>
                     <p><strong>Request ID:</strong> {exchangePost?.request_id}</p>
+                    <p><strong>Posted By:</strong> {exchangePost?.seller_name}</p>
                     <p><strong>Wishlist Description:</strong> {exchangePost.wishlist_description}</p>
                     <p><strong>Status:</strong> {exchangePost?.status}</p>
                     <Table dataSource={exchangePost.bookDetailsList} columns={exchangePostColumns} rowKey="isbn" />
