@@ -56,3 +56,10 @@ async def create_rating(request_id: int, rating_user_id: int, score: float, db: 
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     return
+
+@router.get("/user", status_code=status.HTTP_200_OK)
+async def search_user_rating(username: str, db: db_dependency):
+    query = db.query(models.User.agg_rating).filter(models.User.username == username).first()
+    if query is None:
+        raise HTTPException(status_code=404, detail="User with {username} not found")
+    return query[0]

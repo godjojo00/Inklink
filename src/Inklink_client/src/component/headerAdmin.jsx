@@ -35,6 +35,9 @@ const HeaderAdmin = ({ isLoggedIn, username, onLogout }) => {
           <Link to="/createbook" className="hover:bg-gray-700 px-3 py-2 rounded-md">
             Add Books
           </Link>
+          <Link to="/rating" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            Rating
+          </Link>
 
           {/* Show login or user info based on login status */}
           {isLoggedIn ? (
