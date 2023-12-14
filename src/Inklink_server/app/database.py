@@ -6,7 +6,7 @@ from typing import Annotated
 
 # Change YOUR_POSTGRESQL_USERNAME to your own username (default shoud be postgres)
 # Change YOUR_POSTGRESQL_PASSWORD to your own password
-URL_DATABASE = 'postgresql://postgres:920701@localhost:5434/Inklink'
+URL_DATABASE = 'postgresql://YOUR_POSTGRESQL_USERNAME:YOUR_POSTGRESQL_PASSWORD@localhost:5432/inklink'
 
 engine = create_engine(URL_DATABASE)
 

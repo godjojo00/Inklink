@@ -5,19 +5,19 @@ import { callApi } from '../utils/axios_client';
 const BookSearchPage = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState({ title: '', author: '' });
+  const [search, setSearch] = useState({ isbn: '', title: '', author: '' });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalBooks, setTotalBooks] = useState(0);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (page) => {
     setLoading(true);
     try {
       const response = await callApi(
-        `http://localhost:8000/books/books?book_title=${search.title}&author=${search.author}&page=${currentPage}`,
+        `http://localhost:8000/books/books?isbn=${search.isbn}&book_title=${search.title}&author=${search.author}&page=${page}`,
         'get'
       );
       setBooks(response.data.books);
-      setTotalBooks(response.data.total); // Update this line based on your API's response
+      setTotalBooks(response.data.total);
     } catch (error) {
       console.error('Failed to fetch books:', error);
     } finally {
@@ -38,18 +38,25 @@ const BookSearchPage = () => {
 
   const onSearch = () => {
     setCurrentPage(1);
-    fetchBooks();
+    fetchBooks(1);
   };
 
   const onPageChange = (page) => {
     setCurrentPage(page);
-    fetchBooks();
+    fetchBooks(page);
   };
 
   return (
     <div className="container mx-auto mt-8">
       <h2 className="text-2xl font-bold mb-4">Book Search</h2>
       <div>
+        <Input
+          placeholder="Search by ISBN"
+          name="isbn"
+          value={search.isbn}
+          onChange={onSearchChange}
+          style={{ margin: '0 10px 10px 0' }}
+        />
         <Input
           placeholder="Search by book title"
           name="title"

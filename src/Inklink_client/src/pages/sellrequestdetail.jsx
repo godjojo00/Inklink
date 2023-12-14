@@ -183,7 +183,7 @@ const SellRequestDetail = () => {
       {requestDetails?.status === 'Accepted' ? <p><strong>Buyer:</strong> {requestDetails?.buyer_name}</p> : <></>}
       <Table dataSource={requestDetails?.bookDetailsList} columns={columns} pagination={false} />
 
-      {user && user.userId !== requestDetails.poster_id && requestDetails.status === 'Remained' && (
+      {user && user.role === "user" && user.userId !== requestDetails.poster_id && requestDetails.status === 'Remained' && (
         <Button className='bg-blue-500' type="primary" onClick={showModal}>
           Confirm Purchase
         </Button>
