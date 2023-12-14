@@ -26,6 +26,9 @@ const HeaderAdmin = ({ isLoggedIn, username, onLogout }) => {
           <Link to="/analexchange" className="hover:bg-gray-700 px-3 py-2 rounded-md">
             Analyze Exchanges
           </Link>
+          <Link to="/" className="hover:bg-gray-700 px-3 py-2 rounded-md">
+            Search Requests
+          </Link>
           <Link to="/searchBooks" className="hover:bg-gray-700 px-3 py-2 rounded-md">
             Search Books
           </Link>

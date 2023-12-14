@@ -275,7 +275,7 @@ const ExchangePage = () => {
                 </div>
             )}
 
-            {exchangePost && user && exchangePost.status === "Remained" && exchangePost.poster_id !== user.userId && (
+            {exchangePost && user && user.role === "user" && exchangePost.status === "Remained" && exchangePost.poster_id !== user.userId && (
                 <Form form={form} onFinish={onFinish} className="mt-4">
                     <Form.Item name="isbn_list" label="ISBN List">
                         <Input placeholder="Enter ISBNs separated by commas" />
