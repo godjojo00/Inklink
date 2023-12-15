@@ -86,10 +86,10 @@ async def search_books(
     limit: int = Query(default=10, ge=1)
 ):
     sql_query = """
-    SELECT bi.isbn, b.title, b.edition_name, ba.author_name 
-    FROM book_editions AS b 
-    JOIN book_isbns AS bi ON bi.edition_id = b.edition_id 
-    JOIN book_authors AS ba ON ba.edition_id = b.edition_id
+    SELECT DISTINCT(bi.isbn, b.title, b.edition_name, ba.author_name) 
+    FROM book_isbns AS bi 
+    JOIN book_editions AS b ON bi.edition_id = b.edition_id 
+    JOIN book_authors AS ba ON bi.edition_id = ba.edition_id
     """
     conditions = []
     if book_title:
