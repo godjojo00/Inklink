@@ -86,7 +86,7 @@ async def search_books(
     limit: int = Query(default=10, ge=1)
 ):
     sql_query = """
-    SELECT DISTINCT(bi.isbn, b.title, b.edition_name, ba.author_name) 
+    SELECT DISTINCT bi.isbn, b.title, b.edition_name, ba.author_name
     FROM book_isbns AS bi 
     JOIN book_editions AS b ON bi.edition_id = b.edition_id 
     JOIN book_authors AS ba ON bi.edition_id = ba.edition_id
@@ -106,7 +106,7 @@ async def search_books(
     params = {
         "book_title": f"%{book_title.lower()}%" if book_title else None,
         "author": f"%{author.lower()}%" if author else None,
-        "isbn": f"%{isbn}%" if isbn else None,
+        "isbn": f"{isbn}%" if isbn else None,
         "offset": (page - 1) * limit,
         "limit": limit
     }
