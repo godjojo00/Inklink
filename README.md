@@ -17,7 +17,7 @@
 4. 點擊 inklink/Schemas/public 右鍵，並點選 "Restore"
 5. 請至此 Google Drive [連結](https://drive.google.com/drive/u/1/folders/10msQt28FuGNneAZSvCrWcrA6wZDx2h4b) 下載 inklink_backup_final.sql，並 Restore 此備份檔
 6. 最後按下 "Restore" 這個按鈕就可以成功建立所有 table、index 等等（Restore 時間約 5 - 10 分鐘，如果跳錯請看[下方](###如果點擊"Restore"時跳錯要怎麼解)）
-
+7. 將 src/Inklink_server/app/database.py 中的 URL_DATABASE = 'postgresql://YOUR_POSTGRESQL_USERNAME:YOUR_POSTGRESQL_PASSWORD@localhost:5432/inklink' 的 YOUR_POSTGRESQL_USERNAME 和 YOUR_POSTGRESQL_PASSWORD 分別改成自己的 PostgreSQL 帳號與密碼。（若 PostgreSQL 不是在 port 5432，也請改為自己使用的 port）
 #### 如果點擊"Restore"時跳錯要怎麼解
 
 1. 請參考這個[網站](https://dba.stackexchange.com/questions/149169/binary-path-in-the-pgadmin-preferences)
@@ -38,10 +38,6 @@
    - （Windows）： .venv/Scripts/activate
    - （MacOS）：source .venv/bin/activate
 3. 安裝所需套件：pip install -r requirements.txt
-
-#### 連接資料庫
-
-1. 將 src/Inklink_server/app/database.py 中的 URL_DATABASE = 'postgresql://YOUR_POSTGRESQL_USERNAME:YOUR_POSTGRESQL_PASSWORD@localhost:5432/inklink' 的 YOUR_POSTGRESQL_USERNAME 和 YOUR_POSTGRESQL_PASSWORD 分別改成自己的 PostgreSQL 帳號與密碼。（若 PostgreSQL 不是在 port 5432，也請改為自己使用的 port）
 
 #### Run the server
 
