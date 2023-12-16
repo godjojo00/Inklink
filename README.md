@@ -18,7 +18,7 @@
 5. 請至此 Google Drive [連結](https://drive.google.com/drive/u/1/folders/10msQt28FuGNneAZSvCrWcrA6wZDx2h4b) 下載 inklink_backup_final.sql，並 Restore 此備份檔
 6. 最後按下 "Restore" 這個按鈕就可以成功建立所有 table、index 等等（Restore 時間約 5 - 10 分鐘，如果跳錯請看[下方](###如果點擊"Restore"時跳錯要怎麼解)）
 
-#### 如果點擊 "Restore" 時跳錯要怎麼解
+#### 如果點擊"Restore"時跳錯要怎麼解
 
 1. 請參考這個[網站](https://dba.stackexchange.com/questions/149169/binary-path-in-the-pgadmin-preferences)
 2. 因為 PostgreSQL 有更改過頁面，所以可以參考下方設定，另外，要記得將版本號更改為 16
