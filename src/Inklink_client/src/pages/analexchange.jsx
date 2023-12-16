@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Table, Input, Button, Spin } from 'antd';
+import { Table, Input, Button, Spin, Select } from 'antd';
 import { callApi } from '../utils/axios_client';
+
+const { Option } = Select;
 
 const ExchangeAnalysisPage = () => {
   const [exchangeData, setExchangeData] = useState([]);
@@ -11,7 +13,7 @@ const ExchangeAnalysisPage = () => {
     author_name: '',
     seller_name: '',
     description: '',
-    status: 'All',
+    status: 'All', // Default status is set to "All"
     post_before: '',
     post_after: '',
     descending: true,
@@ -79,9 +81,8 @@ const ExchangeAnalysisPage = () => {
     },
   ];
 
-  const onFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters({ ...filters, [name]: value });
+  const onFilterChange = (key, value) => {
+    setFilters({ ...filters, [key]: value });
   };
 
   const onCheckboxChange = (e) => {
@@ -100,35 +101,35 @@ const ExchangeAnalysisPage = () => {
           placeholder="ISBN"
           name="isbn"
           value={filters.isbn}
-          onChange={onFilterChange}
+          onChange={(e) => onFilterChange('isbn', e.target.value)}
           style={{ margin: '0 10px 10px 0' }}
         />
         <Input
           placeholder="Book Title"
           name="book_title"
           value={filters.book_title}
-          onChange={onFilterChange}
+          onChange={(e) => onFilterChange('book_title', e.target.value)}
           style={{ margin: '0 10px 10px 0' }}
         />
         <Input
           placeholder="Author Name"
           name="author_name"
           value={filters.author_name}
-          onChange={onFilterChange}
+          onChange={(e) => onFilterChange('author_name', e.target.value)}
           style={{ margin: '0 10px 10px 0' }}
         />
         <Input
           placeholder="Seller Name"
           name="seller_name"
           value={filters.seller_name}
-          onChange={onFilterChange}
+          onChange={(e) => onFilterChange('seller_name', e.target.value)}
           style={{ margin: '0 10px 10px 0' }}
         />
         <Input
           placeholder="Description"
           name="description"
           value={filters.description}
-          onChange={onFilterChange}
+          onChange={(e) => onFilterChange('description', e.target.value)}
           style={{ margin: '0 10px 10px 0' }}
         />
         <Input
@@ -136,7 +137,7 @@ const ExchangeAnalysisPage = () => {
           name="post_before"
           type="date"
           value={filters.post_before}
-          onChange={onFilterChange}
+          onChange={(e) => onFilterChange('post_before', e.target.value)}
           style={{ margin: '0 10px 10px 0' }}
         />
         <Input
@@ -144,9 +145,21 @@ const ExchangeAnalysisPage = () => {
           name="post_after"
           type="date"
           value={filters.post_after}
-          onChange={onFilterChange}
+          onChange={(e) => onFilterChange('post_after', e.target.value)}
           style={{ margin: '0 10px 10px 0' }}
         />
+  
+        <Select
+          style={{ width: 120, margin: '0 10px 10px 0' }}
+          placeholder="Status"
+          onChange={(value) => onFilterChange('status', value)}
+          value={filters.status}
+        >
+          <Option value="All">All</Option>
+          <Option value="Remained">Remained</Option>
+          <Option value="Accepted">Accepted</Option>
+          <Option value="Deleted">Deleted</Option>
+        </Select>
         <label>
           <input
             type="checkbox"
