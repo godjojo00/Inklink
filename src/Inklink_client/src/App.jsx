@@ -17,7 +17,6 @@ import PurchaseRecord from './pages/purchaseRecord';
 import SearchBooks from './pages/searchBooks';
 import MyReqeusts from './pages/myRequests';
 import Logout from './pages/logout';
-import HomeAdmin from './pages/HomeAdmin';
 import SellAnalysisPage from './pages/analsell';
 import ExchangeAnalysisPage from './pages/analexchange';
 import CreateBookForm from './pages/createbook';
@@ -59,7 +58,7 @@ function App() {
             <Route path="/admin/exchange/:requestId" element={<ExchangePage />} />
             <Route path="/signUp" element={<SignUp_Page onLogin={handleLogin} />} />
             <Route path="/login" element={<Login_Page onLogin={handleLogin} />} />
-            <Route path="/admin" element={<HomeAdmin onLogin={handleLogin} />} />
+            <Route path="/admin" element={<Home onLogin={handleLogin} />} />
             <Route path="/owns" element={<Owns />} />
             <Route path="/postrequest" element={<PostRequest />} />
             <Route path="/exchange" element={<ExchangePage />} />

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Pagination, Tabs, Input } from 'antd';
+import { Alert, Table, Button, Pagination, Tabs, Input, Select } from 'antd';
 import { callApi } from '../utils/axios_client';
 import { Link } from 'react-router-dom';
+import { useUser } from '../Usercontext';
 
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 const Home = () => {
   const [sellPosts, setSellPosts] = useState([]);
@@ -15,15 +17,15 @@ const Home = () => {
   const [totalSellPosts, setTotalSellPosts] = useState(0);
   const [totalExchangePosts, setTotalExchangePosts] = useState(0);
   const pageSize = 10;
+  const { user } = useUser();
+  const [statusFilter, setStatusFilter] = useState('Remained');
 
   const fetchRequestDetails = async (requestIds, type) => {
     const requests = [];
     for (let id of requestIds) {
       try {
         const response = await callApi(`http://localhost:8000/requests/${type}/${id}`, 'get');
-        if (response.data.status === 'Remained') {
-          requests.push(response.data);
-        }
+        requests.push(response.data);
       } catch (error) {
         console.error(`Failed to fetch ${type} post with request_id ${id}:`, error);
       }
@@ -33,8 +35,9 @@ const Home = () => {
 
   const fetchRequests = async (type, page, filters) => {
     try {
+      const statusQueryParam = user && user.role === 'admin' && statusFilter !== 'Remained' ? { status: statusFilter } : {};
       const filteredFilters = Object.fromEntries(
-        Object.entries(filters).filter(([key, value]) => value !== null && value !== '')
+        Object.entries({ ...filters, ...statusQueryParam }).filter(([key, value]) => value !== null && value !== '')
       );
       const queryParams = new URLSearchParams({ ...filteredFilters, page, limit: pageSize }).toString();
       const response = await callApi(`http://localhost:8000/requests/${type}?${queryParams}`, 'get');
@@ -85,6 +88,10 @@ const Home = () => {
 
   const onExchangePageChange = (page) => {
     fetchExchangeRequests(page);
+  };
+
+  const onStatusChange = (value) => {
+    setStatusFilter(value);
   };
 
   useEffect(() => {
@@ -155,7 +162,23 @@ const Home = () => {
 
   return (
     <div className="container mx-auto mt-8">
-      <h1><strong>All Requests</strong></h1>
+      <h1><strong>{user && user.role === 'admin' ? statusFilter : "Remained"} Requests</strong></h1>
+      <Alert
+        message="Note: Poster name search looks for only exact matches."
+        type="info"
+        showIcon
+        style={{ marginBottom: 20 }}
+      />
+      {user && user.role === 'admin' && (
+        <div style={{ marginBottom: 20 }}>
+          <Select defaultValue="Remained" style={{ width: 120 }} onChange={onStatusChange}>
+            <Option value="All">All</Option>
+            <Option value="Remained">Remained</Option>
+            <Option value="Accepted">Accepted</Option>
+            <Option value="Deleted">Deleted</Option>
+          </Select>
+        </div>
+      )}
       <Tabs defaultActiveKey="1">
         <TabPane tab="Selling Requests" key="1">
           <div>
@@ -189,6 +212,7 @@ const Home = () => {
             onChange={onSellPageChange}
             total={totalSellPosts}
             pageSize={pageSize}
+            showSizeChanger={false}
           />
         </TabPane>
         <TabPane tab="Exchange Requests" key="2">
@@ -222,6 +246,7 @@ const Home = () => {
             onChange={onExchangePageChange}
             total={totalExchangePosts}
             pageSize={pageSize}
+            showSizeChanger={false}
           />
         </TabPane>
       </Tabs>
