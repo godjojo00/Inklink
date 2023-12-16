@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Input, Button, Pagination, Spin } from 'antd';
+import { Table, Input, Button, Pagination, Spin, Alert } from 'antd';
 import { callApi } from '../utils/axios_client';
 
 const BookSearchPage = () => {
@@ -49,6 +49,12 @@ const BookSearchPage = () => {
   return (
     <div className="container mx-auto mt-8">
       <h2 className="text-2xl font-bold mb-4">Book Search</h2>
+      <Alert
+        message="Note: ISBN search looks for ISBNs starting with the entered value ('ISBN%' instead of '%ISBN%'). Also, searches may take a few seconds."
+        type="info"
+        showIcon
+        style={{ marginBottom: 20 }}
+      />
       <div>
         <Input
           placeholder="Search by ISBN"

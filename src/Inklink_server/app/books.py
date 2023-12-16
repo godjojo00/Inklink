@@ -85,23 +85,45 @@ async def search_books(
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=10, ge=1)
 ):
-    query = db.query(models.BookIsbns.isbn, models.Book.title, models.Book.edition_name, models.BookAuthors.author_name)\
-              .join(models.Book, models.BookIsbns.edition_id == models.Book.edition_id)\
-              .join(models.BookAuthors, models.BookIsbns.edition_id == models.BookAuthors.edition_id)
-
+    sql_query = """
+    SELECT DISTINCT bi.isbn, b.title, b.edition_name, ba.author_name
+    FROM book_isbns AS bi 
+    JOIN book_editions AS b ON bi.edition_id = b.edition_id 
+    JOIN book_authors AS ba ON bi.edition_id = ba.edition_id
+    """
+    conditions = []
     if book_title:
-        query = query.filter(models.Book.title.ilike(f'%{book_title}%'))
+        conditions.append("b.title ILIKE :book_title")
     if author:
-        query = query.filter(models.BookAuthors.author_name.ilike(f'%{author}%'))
+        conditions.append("ba.author_name ILIKE :author")
     if isbn:
-        query = query.filter(models.BookIsbns.isbn.like(f'%{isbn}%'))
+        conditions.append("bi.isbn LIKE :isbn")
+    if conditions:
+        sql_query += " WHERE " + " AND ".join(conditions)
+    sql_query += " ORDER BY bi.isbn"
+    sql_query += " OFFSET :offset LIMIT :limit"
 
-    books_list = query.order_by(models.BookIsbns.isbn).offset((page - 1) * limit).limit(limit).all()
+    params = {
+        "book_title": f"%{book_title.lower()}%" if book_title else None,
+        "author": f"%{author.lower()}%" if author else None,
+        "isbn": f"{isbn}%" if isbn else None,
+        "offset": (page - 1) * limit,
+        "limit": limit
+    }
+    result = db.execute(text(sql_query), params).fetchall()
     books_list = [
-        {"isbn": book.isbn, "title": book.title, "edition_name": book.edition_name, "author_name": book.author_name}
-        for book in books_list
+        {"isbn": book[0], "title": book[1], "edition_name": book[2], "author_name": book[3]}
+        for book in result
     ]
 
-    total_count = query.count()
+    count_query = """
+    SELECT COUNT(DISTINCT bi.isbn) 
+    FROM book_isbns AS bi 
+    JOIN book_editions AS b ON bi.edition_id = b.edition_id 
+    JOIN book_authors AS ba ON bi.edition_id = ba.edition_id
+    """
+    if conditions:
+        count_query += " WHERE " + " AND ".join(conditions)
+    total_count = db.execute(text(count_query), params).scalar()
 
     return {"books": books_list, "total": total_count}
