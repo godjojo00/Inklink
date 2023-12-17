@@ -80,6 +80,9 @@ async def create_user_own(own: OwnBase, db: db_dependency):
             db_book = db.query(models.BookIsbns).filter(_book.isbn == models.BookIsbns.isbn).first()
             if db_book is None:
                 raise HTTPException(status_code=404, detail="Book with ISBN doesn't exist in the database")
+            db_own = db.query(models.Owns).filter(models.Owns.owner_id == own.user_id, models.Owns.isbn == own.isbn_list[i]).first()
+            if db_own is not None:
+                raise HTTPException(status_code=400, detail="This book is already in the user's owned books. Please edit instead.")
             db_own = models.Owns(
                 owner_id = own.user_id,
                 isbn = own.isbn_list[i],
