@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Form, Input, Button, message, Radio } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { callApi } from '../utils/axios_client';
 import { useUser } from '../Usercontext';
-import { useNavigate } from 'react-router-dom';
 
 const PostRequest = ({ username, token, fetchRequests }) => {
     const [form] = Form.useForm();
@@ -11,30 +10,7 @@ const PostRequest = ({ username, token, fetchRequests }) => {
     const [loading, setLoading] = useState(false);
     const [showPrice, setShowPrice] = useState(false);
     const [showWishList, setShowWishList] = useState(false);
-    const navigate = useNavigate();
     
-    const getUserId = async () => {
-        try {
-            if (!user) {
-                navigate("/login");
-                return;
-            }
-            const response = await callApi(
-                `http://localhost:8000/users/own/${user.userId}`,
-                'get',
-                null,
-                {
-                    Authorization: `Bearer ${token}`,
-                }
-            );
-            if (response.status === 200) {
-                // Update logic as needed
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
     const handleRadioChange = (e) => {
         const value = e.target.value;
         form.setFieldsValue({
@@ -81,7 +57,7 @@ const PostRequest = ({ username, token, fetchRequests }) => {
             }
         } catch (error) {
             console.error(error);
-            message.error('Failed to publish request. Please try again.');
+            message.error('Failed to publish request. ' + error.detail);
         } finally {
             setLoading(false);
         }

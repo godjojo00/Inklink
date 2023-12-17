@@ -104,7 +104,7 @@ const SellRequestDetail = () => {
           }
         } catch (error) {
           console.error('Failed to delete sell request:', error);
-          message.error('Failed to delete the request. Please try again.');
+          message.error('Failed to delete the request. ' + error.detail);
         }
       },
     });

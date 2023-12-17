@@ -49,7 +49,7 @@ const CreateBookForm = () => {
       }
     } catch (error) {
       console.error('Failed to create book:', error);
-      message.error('Error');
+      message.error('Error: ' + error.detail);
     }
   };
   
