@@ -12,9 +12,9 @@
 #### DB setup(restore)
 在 Restore 資料庫之前請先不要連接後端！
 1. 在自己的 PostgreSQL 建立一個新的 database，名稱叫做 inklink 
-2. 在 inklink/Schemas/public 內執行 `Create Extension pg_trgm;`，重整後會在左方下拉選單 inklink/Extensions 中看到 pg_trgm。
+2. 在 inklink/Schemas/public 內執行 `Create Extension pg_trgm;`，重整後會在 inklink/Extensions 看到 pg_trgm
 3. 點擊 inklink/Schemas/public 右鍵，並點選 "Restore"
-4. 請至此 Google Drive [連結](https://drive.google.com/drive/u/1/folders/10msQt28FuGNneAZSvCrWcrA6wZDx2h4b) 下載 inklink_backup_final.sql，並 Restore 此備份檔
+4. 點擊 filename 右方資料夾，找到此資料夾，選擇 data/inklink_backup_final.sql
 5. 最後按下 "Restore" 這個按鈕就可以成功建立所有 table、index 等等（Restore 時間約 5 - 10 分鐘，如果跳錯請看[下方](###如果點擊"Restore"時跳錯要怎麼解)）
 
 #### 如果點擊"Restore"時跳錯要怎麼解
