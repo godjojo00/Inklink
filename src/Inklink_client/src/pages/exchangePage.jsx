@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { callApi } from '../utils/axios_client';
 import { Table, Form, Input, Button, Modal, message } from 'antd';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useUser } from '../Usercontext';
 
 const ExchangePage = () => {
     const [exchangePost, setExchangePost] = useState(null);
-    const [bookDetails, setBookDetails] = useState([]);
     const [responses, setResponses] = useState([]);
     const [selectedResponse, setSelectedResponse] = useState(null);
     const [form] = Form.useForm();
@@ -41,28 +41,28 @@ const ExchangePage = () => {
         fetchExchangePost();
     }, [requestId]);
 
-    useEffect(() => {
-        const fetchResponses = async () => {
-            try {
-                const response = await callApi(`http://localhost:8000/requests/exchange/${requestId}/responses`, 'get');
-                if (response.data && response.data.response_list) {
-                    // setExchangePost(response.data);
+    const fetchResponses = async () => {
+        try {
+            const response = await callApi(`http://localhost:8000/requests/exchange/${requestId}/responses`, 'get');
+            if (response.data && response.data.response_list) {
+                // setExchangePost(response.data);
 
-                    // Assuming there is a responses endpoint for Exchange posts
-                    const detailedResponses = await Promise.all(response.data.response_list.map(async (item) => {
-                        const detailedResponse = await callApi(`http://localhost:8000/responses/${item.response_id}`, 'get');
-                        return detailedResponse.data;
-                    }));
-                    setResponses(detailedResponses);
-                } else {
-                    console.error('Invalid data structure:', response.data);
-                }
-                // setResponses(detailedResponses);
-            } catch (error) {
-                console.error(`Failed to fetch responses for exchange post with request_id ${requestId}:`, error);
+                // Assuming there is a responses endpoint for Exchange posts
+                const detailedResponses = await Promise.all(response.data.response_list.map(async (item) => {
+                    const detailedResponse = await callApi(`http://localhost:8000/responses/${item.response_id}`, 'get');
+                    return detailedResponse.data;
+                }));
+                setResponses(detailedResponses);
+            } else {
+                console.error('Invalid data structure:', response.data);
             }
-        };
+            // setResponses(detailedResponses);
+        } catch (error) {
+            console.error(`Failed to fetch responses for exchange post with request_id ${requestId}:`, error);
+        }
+    };
 
+    useEffect(() => {
         fetchResponses();
     }, [exchangePost])
 
@@ -86,7 +86,7 @@ const ExchangePage = () => {
             setExchangePost({ ...exchangePost, status: 'Accepted' });
         } catch (error) {
             console.error('Failed to confirm exchange:', error);
-            message.error('Failed to confirm exchange. Please try again.');
+            message.error('Failed to confirm exchange. ' + error.detail);
         }
     };
 
@@ -169,31 +169,22 @@ const ExchangePage = () => {
         return columns;
     };
 
-    const fetchResponseDetails = async (responseId) => {
-        try {
-            const response = await callApi(`http://localhost:8000/responses/${responseId}`, 'get');
-            setSelectedResponse(response.data);
-        } catch (error) {
-            console.error(`Failed to fetch response details for response_id ${responseId}:`, error);
-        }
-    };
-
     const onFinish = async (values) => {
         try {
-            const response = await callApi('http://localhost:8000/responses/', 'post', {
-                request_id: parseInt(requestId, 10),
-                responder_id: user.userId,
-                isbn_list: values.isbn_list.split(',').map(s => s.trim()),
-                no_of_copies_list: values.no_of_copies_list.split(',').map(s => parseInt(s.trim(), 10)),
-                book_condition_list: values.book_condition_list.split(',').map(s => s.trim()),
-            });
-
-            message.success('Response added successfully!');
-            form.resetFields();
-            setResponses((prevResponses) => [prevResponses, response.data]);
+          const response = await callApi('http://localhost:8000/responses/', 'post', {
+            request_id: parseInt(requestId, 10),
+            responder_id: user.userId,
+            isbn_list: values.books.map(book => book.isbn),
+            no_of_copies_list: values.books.map(book => parseInt(book.quantity, 10)),
+            book_condition_list: values.books.map(book => book.condition),
+          });
+          
+          message.success('Response added successfully!');
+          await fetchResponses();
+          form.resetFields();
         } catch (error) {
             console.error('Failed to add response:', error);
-            message.error(error.detail);
+            message.error('Failed to add response: ' + error.detail);
         }
     };
 
@@ -213,7 +204,7 @@ const ExchangePage = () => {
                     }
                 } catch (error) {
                     console.error('Failed to delete exchange request:', error);
-                    message.error('Failed to delete the request. Please try again.');
+                    message.error('Failed to delete the request. ' + error.detail);
                 }
             },
         });
@@ -233,6 +224,10 @@ const ExchangePage = () => {
 
     const closeResponderInfoModal = () => {
         setResponderInfoModalVisible(false);
+    };
+
+    const hasUserAlreadyResponded = () => {
+        return responses.some(response => response.username === user.username);
     };
 
     return (
@@ -275,23 +270,93 @@ const ExchangePage = () => {
                 </div>
             )}
 
-            {exchangePost && user && user.role === "user" && exchangePost.status === "Remained" && exchangePost.poster_id !== user.userId && (
-                <Form form={form} onFinish={onFinish} className="mt-4">
-                    <Form.Item name="isbn_list" label="ISBN List">
-                        <Input placeholder="Enter ISBNs separated by commas" />
-                    </Form.Item>
-                    <Form.Item name="no_of_copies_list" label="Number of Copies List">
-                        <Input placeholder="Enter number of copies separated by commas" />
-                    </Form.Item>
-                    <Form.Item name="book_condition_list" label="Book Condition List">
-                        <Input placeholder="Enter book conditions separated by commas" />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button className="bg-blue-600" type="primary" htmlType="submit">
-                            Submit Response
-                        </Button>
-                    </Form.Item>
-                </Form>
+            {exchangePost && user && user.role === "user"
+                && exchangePost.status === "Remained" && exchangePost.poster_id !== user.userId 
+                && !hasUserAlreadyResponded() && (
+            <Form form={form} onFinish={onFinish} className="mt-4">
+                <Form.List
+                    name="books"
+                    initialValue={[{}]} // Initialize with one empty book entry
+                    >
+                    {(fields, { add, remove }) => (
+                        <>
+                        {fields.map(({ key, name, fieldKey, ...restField }, index) => (
+                            <div key={key} style={{ display: 'flex', marginBottom: 8, alignItems: 'center' }}>
+                            <Form.Item
+                                {...restField}
+                                name={[name, 'isbn']}
+                                fieldKey={[fieldKey, 'isbn']}
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: 'Please enter the ISBN!',
+                                    },
+                                    {
+                                        pattern: /^(?:\d{10}|\d{13})$/,
+                                        message: 'ISBN must be a string with 10 or 13 characters!',
+                                    },
+                                ]}
+                                style={{ flex: 1, marginRight: 8 }}
+                            >
+                                <Input placeholder="ISBN" />
+                            </Form.Item>
+                            <Form.Item
+                                {...restField}
+                                name={[name, 'quantity']}
+                                fieldKey={[fieldKey, 'quantity']}
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: 'Please enter the quantity!',
+                                    },
+                                    {
+                                        validator(_, value) {
+                                            const intValue = parseInt(value, 10);
+                                            if (!isNaN(intValue) && intValue > 0) {
+                                                return Promise.resolve();
+                                            }
+                                            return Promise.reject(new Error('Quantity must be a positive integer!'));
+                                        },
+                                    },
+                                ]}
+                                style={{ flex: 1, marginRight: 8 }}
+                            >
+                                <Input placeholder="Quantity" type="number" />
+                            </Form.Item>
+                            <Form.Item
+                                {...restField}
+                                name={[name, 'condition']}
+                                fieldKey={[fieldKey, 'condition']}
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: 'Please enter the condition!',
+                                    },
+                                ]}
+                                style={{ flex: 1, marginRight: 8 }}
+                            >
+                                <Input placeholder="Condition" />
+                            </Form.Item>
+                            {index > 0 && (
+                                <MinusCircleOutlined onClick={() => remove(name)} />
+                            )}
+                            </div>
+                        ))}
+                        <Form.Item>
+                            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                            Add Book to Response
+                            </Button>
+                        </Form.Item>
+                        </>
+                    )}
+                    </Form.List>
+
+                <Form.Item>
+                <Button className='bg-blue-500 hover:bg-blue-700 text-white' type="primary" htmlType="submit">
+                    Submit Response
+                </Button>
+                </Form.Item>
+            </Form>
             )}
 
             {user && exchangePost && user.userId === exchangePost.poster_id && exchangePost.status === 'Remained' && (

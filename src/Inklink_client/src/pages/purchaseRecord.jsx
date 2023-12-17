@@ -63,7 +63,7 @@ const PurchaseRecord = () => {
         setPurchaseRecords(filteredPurchaseRecords);
       } catch (error) {
         console.error('Failed to fetch purchase records:', error);
-        message.error('Failed to fetch purchase records. Please try again.');
+        message.error('Failed to fetch purchase records. ' + error.detail);
       } finally {
         setLoading(false);
       }

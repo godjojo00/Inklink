@@ -17,7 +17,7 @@ def reduce_copies_owned(user_id, isbn, reduced_no_of_copies, db):
     try:
         db_own.no_of_copies -= reduced_no_of_copies
         if db_own.no_of_copies == 0:
-            db_own.delete()
+            db.delete(db_own)
         db.flush()
     except SQLAlchemyError as e:
         db.rollback()

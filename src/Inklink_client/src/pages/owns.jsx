@@ -112,8 +112,8 @@ const Owns = ({ username, token }) => {
         fetchBooks();
       }
     } catch (error) {
-      console.error(error);
-      message.error('Failed to add book. Please try again.');
+      const errorMessage = error.response?.data?.detail || error.detail || 'Failed to add book. Please try again.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -153,8 +153,8 @@ const Owns = ({ username, token }) => {
         fetchBooks(); // Refresh the book list
       }
     } catch (error) {
-      console.error(error);
-      message.error('Failed to update book quantity. Please try again.');
+      const errorMessage = error.response?.data?.detail || error.detail || 'Failed to update book quantity. Please try again.';
+      message.error(errorMessage);
     }
     setIsModalVisible(false);
   };
@@ -192,6 +192,14 @@ const Owns = ({ username, token }) => {
               required: true,
               message: 'Please enter the quantity!',
             },
+            () => ({
+              validator(_, value) {
+                if (!value || value > 0) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('Quantity must be a positive number!'));
+              },
+            }),
           ]}
         >
           <Input
@@ -229,7 +237,17 @@ const Owns = ({ username, token }) => {
             name="quantity"
             label="Quantity"
             initialValue={selectedBook?.no_of_copies}
-            rules={[{ required: true, message: 'Please enter the new quantity!' }]}
+            rules={[
+              { required: true, message: 'Please enter the new quantity!' },
+              () => ({
+                validator(_, value) {
+                  if (!value || value >= 0) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Quantity must be a non-negative number!'));
+                },
+              }),
+            ]}
           >
             <Input type="number" />
           </Form.Item>

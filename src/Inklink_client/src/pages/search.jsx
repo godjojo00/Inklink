@@ -133,7 +133,7 @@ const ExchangeSearch = () => {
       return bookInfo;
     } catch (error) {
       console.error('Failed to fetch book info:', error);
-      message.error('Failed to fetch book info. Please try again.');
+      message.error('Failed to fetch book info. ' + error.detail);
       return null;
     }
   };
@@ -186,7 +186,7 @@ const ExchangeSearch = () => {
       setSellData([]); // Clear sellData
     } catch (error) {
       console.error('Failed to fetch exchange data:', error);
-      message.error(error.message || 'Failed to fetch exchange data. Please try again.');
+      message.error('Failed to fetch exchange data. ' + error.detail);
     }
   };
   
@@ -233,7 +233,7 @@ const ExchangeSearch = () => {
       setExchangeData([]); // Clear exchangeData
     } catch (error) {
       console.error('Failed to fetch sell data:', error);
-      message.error('Failed to fetch sell data. Please try again.');
+      message.error('Failed to fetch sell data. ' + error.detail);
     }
   };
 
