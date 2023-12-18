@@ -65,6 +65,7 @@
 ## 簡短示例
 ### User
 Username: changlei
+
 Password: *g$V#&xWTed3E8q
 1. 註冊、登入：以上述帳密（或是以自己註冊的新帳號）登入系統
 2. 搜尋出售、交換請求：至 Search Requests 頁面（主頁）搜尋、瀏覽其他使用者發布且仍開放的出售與交換請求
@@ -85,7 +86,9 @@ Password: *g$V#&xWTed3E8q
 
 ### Admin
 Username: admin
+
 Password: dbmsfinal
+
 以下僅列出管理員獨有的功能
 1. 分析出售請求：至 Analyze Sells 頁面輸入書籍與出售請求的篩選條件，查看目標書籍在篩選後的出售請求中售出多少本，該請求平均售價為何
 2. 分析交換請求：至 Analyze Exchanges 頁面輸入書籍與交換請求的篩選條件，查看目標書籍在篩選後的交換請求中交換了多少本
