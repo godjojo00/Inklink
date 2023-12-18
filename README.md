@@ -27,49 +27,76 @@
 
 #### Setup
 
-進入 src/Inklink_server 後：
-若有用 conda 的話請先 conda deactivate
+`cd src/Inklink_server` 後：
+若有用 conda 的話請先 `conda deactivate`
 1. 創建虛擬環境
-   - （Windows）：python3 -m venv .venv
-   - （MacOS）：python3 -m venv .venv
+    ```sh
+    python3 -m venv .venv
+    ```
    - 替代方法（VSCode）：在 VSCode 裡打開 Command Palette，用 Python: Create Environment 選擇 venv，否則 VSCode 可能會找不到對應的 intepreter
 2. 進入虛擬環境
-   - （Windows）： .venv/Scripts/activate
-   - （MacOS）：source .venv/bin/activate
-3. 安裝所需套件：pip install -r requirements.txt
+   - （Windows）：
+     ```sh
+     .venv/Scripts/activate
+     ```
+   - （MacOS）：
+     ```sh
+     source .venv/bin/activate
+     ```
+3. 安裝所需套件
+   ```sh
+   pip install -r requirements.txt
+   ```
 
 #### 連接資料庫
 
-1. 將 src/Inklink_server/app/database.py 中的 URL_DATABASE = 'postgresql://YOUR_POSTGRESQL_USERNAME:YOUR_POSTGRESQL_PASSWORD@localhost:5432/inklink' 的 YOUR_POSTGRESQL_USERNAME 和 YOUR_POSTGRESQL_PASSWORD 分別改成自己的 PostgreSQL 帳號與密碼。（若 PostgreSQL 不是在 port 5432，也請改為自己使用的 port）
+1. 將 src/Inklink_server/app/database.py 中的
+   ```python
+   URL_DATABASE = 'postgresql://YOUR_POSTGRESQL_USERNAME:YOUR_POSTGRESQL_PASSWORD@localhost:5432/inklink'
+   ```
+    的 `YOUR_POSTGRESQL_USERNAME` 和 `YOUR_POSTGRESQL_PASSWORD` 分別改成自己的 PostgreSQL 帳號與密碼。（若 PostgreSQL 不是在 port 5432，也請改為自己使用的 port）
 
 #### Run the server
 
-進入 src/Inklink_server 後：
+進入 src/Inklink_server 與虛擬環境後：
 
-1. 進入虛擬環境
-   - （Windows）： .venv/Scripts/activate
-   - （MacOS）：source .venv/bin/activate
-2. cd app
-3. uvicorn main:app --reload
-4. uvicorn 會替 FastAPI 開啟 server，接著上 localhost:8000/docs，如果可以看到 APIs 就成功了！
+1. ```sh
+   cd app
+   ```
+2. 用 uvicorn 替 FastAPI 開啟 server
+   ```sh
+   uvicorn main:app --reload
+   ```
+4. 接著上 http://localhost:8000/docs ，如果可以看到 APIs 就成功了！
 
 ### 三、 啟動前端
 
 ### Run the server
 
-1. cd src/Inklink_client
-2. yarn/npm install
-3. npm run dev
-4. 開啟 http://localhost:5173（建議使用 Google Chrome）
+1. 再開一個 terminal
+2. ```sh
+   cd src/Inklink_client
+   ```
+3. 安裝 dependencies，下面指令二擇一執行即可
+   ```sh
+   yarn install
+   ```
+   ```sh
+   npm install
+   ```
+4. 開啟 server
+   ```sh
+   npm run dev
+   ```
+5. 開啟 http://localhost:5173 （建議使用 Google Chrome），就可以使用網站啦！
 
 ## 簡短示例
 ### User
-Username: changlei
-
+Username: changlei  
 Password: *g$V#&xWTed3E8q
-1. 註冊、登入：以上述帳密（或是以自己註冊的新帳號）登入系統
+1. 註冊、登入：以上述帳密（或是以自己註冊的新帳號，或至資料庫查詢）登入系統
 2. 搜尋出售、交換請求：至 Search Requests 頁面（主頁）搜尋、瀏覽其他使用者發布且仍開放的出售與交換請求
-3. 搜尋書籍：至 Search Books 頁面搜尋本系統所有的書籍（因資料量龐大，有些搜尋可能會花上十多秒）
+3. 搜尋書籍：至 Search Books 頁面搜尋本系統所有的書籍（因資料量龐大，有些搜尋可能會花上十多秒，如果還是卡住，可以參考 [issues/72](https://github.com/godjojo00/Inklink/issues/72) ）
 4. 新增、修改自己擁有的書籍：至 My Books 頁面新增（或修改）自己擁有的書籍（僅能新增本系統已記載的書籍）
 5. 發布出售、交換請求：至 Post Requests 頁面發布出售或交換請求（請求內的各書本數量不得超過 My Books 中自己所擁有的，且發布後 My Books 會扣除相對應的書本數量）
 6. 查看自己曾發布的請求：至 My Requests 確認自己曾發布的所有請求
@@ -85,11 +112,11 @@ Password: *g$V#&xWTed3E8q
 2. 在 My Requests 頁面或 Search Requests 頁面選擇該交換請求，選擇想要的提案（點選 Detail 後點選欲選擇的提案對應的 Confirm Exchange）
 
 ### Admin
-Username: admin
-
+Username: admin  
 Password: dbmsfinal
 
 以下僅列出管理員獨有的功能
 1. 分析出售請求：至 Analyze Sells 頁面輸入書籍與出售請求的篩選條件，查看目標書籍在篩選後的出售請求中售出多少本，該請求平均售價為何
 2. 分析交換請求：至 Analyze Exchanges 頁面輸入書籍與交換請求的篩選條件，查看目標書籍在篩選後的交換請求中交換了多少本
 3. 新增書籍至資料庫：至 Add Books 頁面輸入書籍相關資訊，將書籍資料新增至系統
+4. 查看已成功或已刪除的所有請求
